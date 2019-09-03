@@ -1,7 +1,7 @@
 import sqlalchemy as db
-import psycopg2
 
-def create_connection(drivername, host, database, port, echo=False):
+
+def create_connection(drivername, username, database, echo=False):
     """
     Creates connection to a database from specified parameters
 
@@ -30,7 +30,7 @@ def create_connection(drivername, host, database, port, echo=False):
                                # host=host,
                                database=database,
                                # port=port,
-                               # )
+                               )
     engine = db.create_engine(db_url, echo=echo)
     return engine
 
