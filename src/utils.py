@@ -25,11 +25,12 @@ def create_connection(drivername, host, database, port, echo=False):
     """
 
     db_url = db.engine.url.URL(drivername=drivername,
-                               # username=username,
+                               username=username,
                                # password=password,
-                               host=host,
+                               # host=host,
                                database=database,
-                               port=port)
+                               # port=port,
+                               # )
     engine = db.create_engine(db_url, echo=echo)
     return engine
 
@@ -51,10 +52,11 @@ def create_connection_from_dict(dictionary, driver):
     """
 
     engine = create_connection(drivername=driver,
-                               # username=dictionary['user'],
+                               username=dictionary['user'],
                                # password=dictionary['password'],
-                               host=dictionary['host'],
+                               # host=dictionary['host'],
                                database=dictionary['dbname'],
-                               port=dictionary['port'])
+                               # port=dictionary['port'],
+                               )
 
     return engine

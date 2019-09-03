@@ -40,6 +40,7 @@ def run():
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
+    print(psql_credentials)
 
     # execute_sql(os.path.join(SQL_FOLDER, 'create_schemas.sql'), engine, read_file=True)
 
@@ -48,6 +49,8 @@ def run():
     test = engine.execute('select * from raw.ais;')
 
     print(test)
+
+
 
 
 
