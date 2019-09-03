@@ -1,5 +1,5 @@
-DROP TABLE if exists raw.AIS;
-CREATE TABLE raw.AIS as (
+DROP TABLE if exists raw.ais;
+CREATE TABLE raw.ais (
     MMSI        VARCHAR,
     TIME        VARCHAR,
     LONGITUDE   VARCHAR,
@@ -12,7 +12,7 @@ CREATE TABLE raw.AIS as (
     IMO         VARCHAR,
     NAME        VARCHAR,
     CALLSIGN    VARCHAR,
-    TYPE        VARCHAR
+    TYPE        VARCHAR,
     A           VARCHAR,
     B           VARCHAR,
     C           VARCHAR,
@@ -20,4 +20,4 @@ CREATE TABLE raw.AIS as (
     DRAUGHT     VARCHAR,
     DEST        VARCHAR,
     ETA         VARCHAR
-)
+);
