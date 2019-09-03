@@ -4,6 +4,7 @@
 
 import os
 import settings
+from utils import create_connection, create_connection_from_dict
 
 
 def run():
@@ -29,10 +30,24 @@ def run():
     DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data/')
     SQL_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
 
-    # Data files to be loaded
-    #data_config = os.path.join(ROOT_FOLDER, 'config/base/data_files.yaml')
+    # TODO: I think we'll need a function that writes the data_files.yaml
+    # file, maybe right here? We have way too many files to write
+    # the yaml by hand.
 
-    print(ROOT_FOLDER, DATA_FOLDER, SQL_FOLDER)
+    # Data files to be loaded
+    # TODO: For now I'm just taking the first two
+    data_config = os.path.join(ROOT_FOLDER, 'config/data_files.yaml')
+
+    # Get PostgreSQL database credentials
+    psql_credentials = settings.get_psql()
+
+    # execute_sql(os.path.join(SQL_FOLDER, 'create_schemas.sql'), engine, read_file=True)
+
+    # Create SQLAlchemy engine from database credentials
+    engine = create_connection_from_dict(psql_credentials, 'postgresql')
+    test = engine.execute('select * from raw.ais;')
+
+    print(test)
 
 
 
