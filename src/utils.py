@@ -1,4 +1,5 @@
 import sqlalchemy as db
+import yaml
 
 
 def create_connection(drivername, username, database, echo=False):
@@ -60,3 +61,23 @@ def create_connection_from_dict(dictionary, driver):
                                )
 
     return engine
+
+
+def load_yaml(filename):
+    """
+     Returns the contents of a yaml file in a dict
+
+     Parameters
+     ----------
+     filename : string
+        The full filepath string '.../.../.yaml' of the yaml file to be loaded
+
+     Returns
+     -------
+     yaml_contents : dict
+        Contents of the yaml file (may be a nested dict)
+    """
+
+    with open(filename, 'r') as ymlfile:
+        yaml_contents = yaml.safe_load(ymlfile)
+    return yaml_contents
