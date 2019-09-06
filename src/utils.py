@@ -81,3 +81,48 @@ def load_yaml(filename):
     with open(filename, 'r') as ymlfile:
         yaml_contents = yaml.safe_load(ymlfile)
     return yaml_contents
+
+
+def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
+    """
+    Converts AIS JSON files from data folder to CSV files in the temporary folder.
+
+    Parameters:
+    arg1 (class): OS specific path
+    arg2 (class): OS specific path
+
+    """
+
+    # Obtain all json files within subdirectories
+    json_files = DATA_FOLDER.glob('**/*.json')
+
+    print(f'Converting JSON files in {DATA_FOLDER}')
+
+    for json_path in json_files:
+
+        print(f"Processing {json_path}")
+
+        with open(json_path) as infile:
+            data = json.load(infile)
+
+        with open(Path(TEMP_FOLDER / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+
+            for i, segment in enumerate(data):
+
+                # Skip Userinfo row
+                if i == 0:
+                    continue
+
+                else:
+                    for j, observation in enumerate(segment):
+
+                        # Write Header
+                        if j == 0:
+                            csvwriter.writerow(observation.keys())
+
+                        else:
+                            csvwriter.writerow(observation.values())
+
+    print("COMPLETE")
+    time.sleep(3)
