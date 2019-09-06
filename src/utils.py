@@ -88,7 +88,7 @@ def load_yaml(filename):
     return yaml_contents
 
 
-def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
+def json_directory_to_csv(DATA_DIR, TEMP_DIR):
     """
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
 
@@ -99,9 +99,9 @@ def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
     """
 
     # Obtain all json files within subdirectories
-    json_files = DATA_FOLDER.glob('**/*.json')
+    json_files = DATA_DIR.glob('**/*.json')
 
-    print(f'Converting JSON files in {DATA_FOLDER}')
+    print(f'Converting JSON files in {DATA_DIR}')
 
     for json_path in json_files:
 
@@ -110,7 +110,7 @@ def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
         with open(json_path) as infile:
             data = json.load(infile)
 
-        with open((TEMP_FOLDER / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
+        with open((TEMP_DIR / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
             for i, segment in enumerate(data):
@@ -131,3 +131,88 @@ def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
 
     print("COMPLETE")
     time.sleep(3)
+
+
+def execute_sql(string, engine, read_file, print_=False, return_df=False, chunksize=None, params=None):
+    """
+    Executes a SQL query from a file or a string using SQLAlchemy engine
+    Note: Must only be basic SQL (e.g. does not run PSQL \copy and other commands)
+    Note: SQL file CANNOT START WITH A COMMENT! There can be comments later on in the file, but for some reason
+    doesn't work if you start with one (seems to treat the entire file as commented)
+
+    Parameters:
+    string : string
+        Either a filename (with full path string '.../.../.sql') or a specific query string to be executed
+        Can include "parameters" (in the form of {param_name}) whose values are filled in at the time of execution
+    engine : SQLAlchemy engine object
+        To connect to DB
+    read_file : boolean
+        Whether to treat the string as a filename or a query
+    print_ : boolean
+        Whether to print the 'Executed query' statement
+    return_df : boolean
+        Whether to return the result table of query as a Pandas dataframe
+    chunksize : int
+        Rows will be read in batches of this size at a time; all rows will be read at once if not specified
+    params : dict
+        In the case of parameterized SQL, the dictionary of parameters in the form of {'param_name': param_value}
+
+    Returns:
+    ResultProxy : ResultProxy
+        see SQLAlchemy documentation; results of query
+    """
+
+    if read_file:
+        query = Path(string).read_text()
+    else:
+        query = string
+
+    if params is not None:
+        query = query.format(**params)
+
+    if print_:
+        print('Query executed')
+
+    if return_df:
+        res_df = pd.read_sql_query(query, engine, chunksize=chunksize)
+        return res_df
+    else:  # Not all result objects return rows.
+        engine.execute(query)
+
+
+def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=','):
+    """
+    Copy a csv or txt file to a specified database, where the corresponding table has been created
+
+    Parameters:
+    src_file : str
+        Path of the source csv file to be copied
+    dst_table : str
+        Full name of the database table that stores the .csv file , in the form of "schema.table"
+    header: boolean
+        Whether the csv file has column names in the first row
+    sep : str
+        File delimiter
+    engine : SQLAlchemy engine object
+        Connection to the target database
+    mode : str
+        {"append", "replace"}
+        Either append to the database table or replace it
+    mode : str
+        {"append", "replace"}
+        Either append to the database table or replace it
+
+    Returns:
+    None
+    """
+
+    conn = engine.raw_connection()
+    cur = conn.cursor()
+    with open(src_file, 'r', encoding='ISO-8859-1') as f:
+        if header:
+            head = 'HEADER'
+        else:
+            head = ''
+        cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' {head} CSV", f)
+    print(f"{src_file} copied to {dst_table}")
+    conn.commit()
