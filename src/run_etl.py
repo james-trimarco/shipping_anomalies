@@ -4,8 +4,7 @@
 
 import os
 import settings
-from utils import create_connection, create_connection_from_dict, json_directory_to_csv, \
-                  execute_sql
+from utils import create_connection_from_dict, execute_sql
 from etl.load_raw import load_csv
 
 
