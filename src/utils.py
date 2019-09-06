@@ -88,7 +88,7 @@ def load_yaml(filename):
     return yaml_contents
 
 
-def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
+def json_directory_to_csv(DATA_DIR, TEMP_DIR):
     """
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
 
@@ -99,9 +99,9 @@ def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
     """
 
     # Obtain all json files within subdirectories
-    json_files = DATA_FOLDER.glob('**/*.json')
+    json_files = DATA_DIR.glob('**/*.json')
 
-    print(f'Converting JSON files in {DATA_FOLDER}')
+    print(f'Converting JSON files in {DATA_DIR}')
 
     for json_path in json_files:
 
@@ -110,7 +110,7 @@ def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
         with open(json_path) as infile:
             data = json.load(infile)
 
-        with open((TEMP_FOLDER / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
+        with open((TEMP_DIR / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
             for i, segment in enumerate(data):
@@ -131,6 +131,7 @@ def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
 
     print("COMPLETE")
     time.sleep(3)
+
 
 def execute_sql(string, engine, read_file, print_=False, return_df=False, chunksize=None, params=None):
     """
@@ -177,3 +178,41 @@ def execute_sql(string, engine, read_file, print_=False, return_df=False, chunks
         return res_df
     else:  # Not all result objects return rows.
         engine.execute(query)
+
+
+def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=','):
+    """
+    Copy a csv or txt file to a specified database, where the corresponding table has been created
+
+    Parameters:
+    src_file : str
+        Path of the source csv file to be copied
+    dst_table : str
+        Full name of the database table that stores the .csv file , in the form of "schema.table"
+    header: boolean
+        Whether the csv file has column names in the first row
+    sep : str
+        File delimiter
+    engine : SQLAlchemy engine object
+        Connection to the target database
+    mode : str
+        {"append", "replace"}
+        Either append to the database table or replace it
+    mode : str
+        {"append", "replace"}
+        Either append to the database table or replace it
+
+    Returns:
+    None
+    """
+
+    conn = engine.raw_connection()
+    cur = conn.cursor()
+    with open(src_file, 'r', encoding='ISO-8859-1') as f:
+        if header:
+            head = 'HEADER'
+        else:
+            head = ''
+        cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' {head} CSV", f)
+    print(f"{src_file} copied to {dst_table}")
+    conn.commit()
