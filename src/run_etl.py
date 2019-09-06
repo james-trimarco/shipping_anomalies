@@ -4,7 +4,9 @@
 
 import os
 import settings
-from utils import create_connection, create_connection_from_dict, json_directory_to_csv, execute_sql
+from utils import create_connection, create_connection_from_dict, json_directory_to_csv, \
+                  execute_sql
+from etl.load_raw import load_csv
 
 
 def run():
@@ -58,8 +60,14 @@ def run():
     print("Creating tables")
     execute_sql(os.path.join(SQL_DIR, 'create_tables.sql'), engine, read_file=True)
 
+    ## ---- CONVERT JSON TO TEMP CSV ----
+
+    print("Converting json; saving to /temp directory")
+    # json_directory_to_csv(DATA_DIR, TEMP_DIR)
+    load_csv(TEMP_DIR, engine, 'raw.ais')
+
     ## ---- TESTING ----
-    test = engine.execute('select * from raw.ais;')
+    test = engine.execute('select * from raw.ais limit 1;')
 
     print(test)
 
