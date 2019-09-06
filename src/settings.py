@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
 
 def load():
     """
@@ -33,6 +34,6 @@ def get_psql():
     return psql_credentials
 
 
-def get_root_dir():
-    ROOT_FOLDER = os.environ['ROOT_FOLDER']
-    return ROOT_FOLDER
+def get_base_dir():
+    BASE_DIR = Path(__file__).resolve().parent
+    return BASE_DIR
