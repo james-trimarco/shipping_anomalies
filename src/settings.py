@@ -35,5 +35,6 @@ def get_psql():
 
 
 def get_base_dir():
-    BASE_DIR = Path(__file__).resolve().parent
+    # TODO: can this be cleaner?
+    BASE_DIR = Path(__file__).resolve().parent.parent
     return BASE_DIR
