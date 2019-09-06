@@ -4,7 +4,7 @@
 
 import os
 import settings
-from utils import create_connection, create_connection_from_dict, json_directory_to_csv
+from utils import create_connection, create_connection_from_dict, json_directory_to_csv, execute_sql
 
 
 def run():
@@ -25,17 +25,19 @@ def run():
 
     # Set environment variables
     settings.load()
-    # Get environment folders
-    ROOT_FOLDER = settings.get_root_dir()
-    DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data/')
-    SQL_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
-    TEMP_FOLDER = os.path.join(ROOT_FOLDER, 'temp/')
-
+    # Get root directory from environment
+    BASE_DIR = settings.get_base_dir()
+    DATA_DIR = BASE_DIR.joinpath('data')
+    SQL_DIR = BASE_DIR.joinpath('sql')
+    TEMP_DIR = BASE_DIR.joinpath('temp')
     # create the temp directory
-    os.mkdir(TEMP_FOLDER)
+    # TODO: Should exist_ok be false here?
+    TEMP_DIR.mkdir(parents=True, exist_ok=True)
+
+    print(BASE_DIR.parts)
 
     # transform json to csv
-    json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER)
+    #json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER)
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
@@ -45,6 +47,18 @@ def run():
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
+
+    ## ---- CREATE SCHEMAS ----
+
+    print("Creating schemas")
+    execute_sql(os.path.join(SQL_DIR, 'create_schemas.sql'), engine, read_file=True)
+
+    ## ---- CREATE TABLES ----
+
+    print("Creating tables")
+    execute_sql(os.path.join(SQL_DIR, 'create_tables.sql'), engine, read_file=True)
+
+    ## ---- TESTING ----
     test = engine.execute('select * from raw.ais;')
 
     print(test)
