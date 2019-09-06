@@ -29,7 +29,7 @@ def run():
     ROOT_FOLDER = settings.get_root_dir()
     DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data/')
     SQL_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
-    TEMP_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
+    TEMP_FOLDER = os.path.join(ROOT_FOLDER, 'temp/')
 
     # create the temp directory
     os.mkdir(TEMP_FOLDER)
