@@ -110,7 +110,7 @@ def json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER):
         with open(json_path) as infile:
             data = json.load(infile)
 
-        with open(Path(TEMP_FOLDER / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
+        with open((TEMP_FOLDER / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
             for i, segment in enumerate(data):
