@@ -4,7 +4,7 @@
 
 import os
 import settings
-from utils import create_connection, create_connection_from_dict
+from utils import create_connection, create_connection_from_dict, json_directory_to_csv
 
 
 def run():
@@ -29,14 +29,13 @@ def run():
     ROOT_FOLDER = settings.get_root_dir()
     DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data/')
     SQL_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
+    TEMP_FOLDER = os.path.join(ROOT_FOLDER, 'temp/')
 
-    # TODO: I think we'll need a function that writes the data_files.yaml
-    # file, maybe right here? We have way too many files to write
-    # the yaml by hand.
+    # create the temp directory
+    os.mkdir(TEMP_FOLDER)
 
-    # Data files to be loaded
-    # TODO: For now I'm just taking the first two
-    data_config = os.path.join(ROOT_FOLDER, 'config/data_files.yaml')
+    # transform json to csv
+    json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER)
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
@@ -49,9 +48,6 @@ def run():
     test = engine.execute('select * from raw.ais;')
 
     print(test)
-
-
-
 
 
 if __name__ == '__main__':
