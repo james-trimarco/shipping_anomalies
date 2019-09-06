@@ -66,7 +66,7 @@ def run():
     load_csv(TEMP_DIR, engine, 'raw.ais')
 
     ## ---- TESTING ----
-    test = engine.execute('select * from raw.ais limit 1;')
+    test = engine.execute('select * from raw.ais limit 1;') 
 
     print(test)
 
