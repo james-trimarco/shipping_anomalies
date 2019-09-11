@@ -38,3 +38,7 @@ def get_base_dir():
     # TODO: can this be cleaner?
     BASE_DIR = Path(__file__).resolve().parent.parent
     return BASE_DIR
+
+def get_data_dir():
+    DATA_DIR = Path('/Novetta/data_orig/AIS_data')
+    return DATA_DIR
