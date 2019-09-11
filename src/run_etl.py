@@ -28,7 +28,7 @@ def run():
     settings.load()
     # Get root directory from environment
     BASE_DIR = settings.get_base_dir()
-    DATA_DIR = BASE_DIR.joinpath('data')
+    DATA_DIR = settings.get_base_dir()
     SQL_DIR = BASE_DIR.joinpath('sql')
     TEMP_DIR = BASE_DIR.joinpath('temp')
     # create the temp directory
