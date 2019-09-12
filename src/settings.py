@@ -40,5 +40,9 @@ def get_base_dir():
     return BASE_DIR
 
 def get_data_dir():
-    DATA_DIR = Path('/Novetta/data_orig/AIS_data')
+    DATA_DIR = Path(os.environ['DATA_DIR'])
     return DATA_DIR
+
+def get_temp_dir():
+    TEMP_DIR = Path(os.environ['TEMP_DIR'])
+    return TEMP_DIR
