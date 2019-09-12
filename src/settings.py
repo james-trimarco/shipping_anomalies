@@ -38,3 +38,11 @@ def get_base_dir():
     # TODO: can this be cleaner?
     BASE_DIR = Path(__file__).resolve().parent.parent
     return BASE_DIR
+
+def get_data_dir():
+    DATA_DIR = Path(os.environ['DATA_DIR'])
+    return DATA_DIR
+
+def get_temp_dir():
+    TEMP_DIR = Path(os.environ['TEMP_DIR'])
+    return TEMP_DIR
