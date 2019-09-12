@@ -4,7 +4,7 @@
 
 import os
 import settings
-from utils import create_connection_from_dict, execute_sql
+from utils import create_connection_from_dict, execute_sql, json_directory_to_csv
 from etl.load_raw import load_csv
 
 
@@ -28,15 +28,15 @@ def run():
     settings.load()
     # Get root directory from environment
     BASE_DIR = settings.get_base_dir()
-    DATA_DIR = settings.get_base_dir()
+    DATA_DIR = settings.get_data_dir()
     SQL_DIR = BASE_DIR.joinpath('sql')
-    TEMP_DIR = BASE_DIR.joinpath('temp')
+    TEMP_DIR = settings.get_temp_dir().joinpath('ais_temp')
     # create the temp directory
     # TODO: Should exist_ok be false here?
     TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
     print(BASE_DIR.parts)
-
+    print(TEMP_DIR.parts)
     # transform json to csv
     #json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER)
 
@@ -62,7 +62,7 @@ def run():
     ## ---- CONVERT JSON TO TEMP CSV ----
 
     print("Converting json; saving to /temp directory")
-    # json_directory_to_csv(DATA_DIR, TEMP_DIR)
+    json_directory_to_csv(DATA_DIR, TEMP_DIR)
     load_csv(TEMP_DIR, engine, 'raw.ais')
 
     ## ---- TESTING ----
