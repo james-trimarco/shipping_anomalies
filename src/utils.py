@@ -88,7 +88,7 @@ def load_yaml(filename):
     return yaml_contents
 
 
-def json_directory_to_csv(DATA_DIR, TEMP_DIR):
+def json_directory_to_csv(DATA_DIR, TEMP_DIR, list_of_dirs):
     """
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
 
@@ -99,35 +99,37 @@ def json_directory_to_csv(DATA_DIR, TEMP_DIR):
     """
 
     # Obtain all json files within subdirectories
-    json_files = DATA_DIR.glob('**/*.json')
+    for directory in list_of_dirs:
+        json_dir = DATA_DIR(directory)
+        json_files = json_dir.glob('**/*.json')
 
-    print(f'Converting JSON files in {DATA_DIR}')
+        print(f'Converting JSON files in {DATA_DIR}')
 
-    for json_path in json_files:
+        for json_path in json_files:
 
-        print(f"Processing {json_path}")
+            print(f"Processing {json_path}")
 
-        with open(json_path) as infile:
-            data = json.load(infile)
+            with open(json_path) as infile:
+                data = json.load(infile)
 
-        with open((TEMP_DIR / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
-            csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+            with open((TEMP_DIR / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
-            for i, segment in enumerate(data):
+                for i, segment in enumerate(data):
 
-                # Skip Userinfo row
-                if i == 0:
-                    continue
+                    # Skip Userinfo row
+                    if i == 0:
+                        continue
 
-                else:
-                    for j, observation in enumerate(segment):
+                    else:
+                        for j, observation in enumerate(segment):
 
-                        # Write Header
-                        if j == 0:
-                            csvwriter.writerow(observation.keys())
+                            # Write Header
+                            if j == 0:
+                                csvwriter.writerow(observation.keys())
 
-                        else:
-                            csvwriter.writerow(observation.values())
+                            else:
+                                csvwriter.writerow(observation.values())
 
     print("COMPLETE")
     time.sleep(3)
