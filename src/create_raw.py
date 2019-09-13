@@ -69,7 +69,8 @@ def run(read_json=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Settings for create_raw')
-    parser.add_argument('read_json', metavar='-j', help='will we import json directories?',
-                        type=bool)
+    parser.add_argument('read_json', metavar='-j',
+                        help='will we import json directories?',
+                        type=bool, default=False)
     args = parser.parse_args()
     run(args.read_json)
