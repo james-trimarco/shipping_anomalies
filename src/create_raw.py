@@ -86,7 +86,7 @@ def str_to_bool(input_str):
     Parameters:
     input_str: str
     Returns:
-    Boolean or error
+    Boolean or error 
     """
     if isinstance(input_str, bool):
         return input_str
