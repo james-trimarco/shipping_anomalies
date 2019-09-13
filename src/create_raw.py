@@ -62,7 +62,7 @@ def run():
     ## ---- CONVERT JSON TO TEMP CSV ----
 
     print("Converting json; saving to /temp directory")
-    json_directory_to_csv(DATA_DIR, TEMP_DIR, ['2019Apr'])
+    # json_directory_to_csv(DATA_DIR, TEMP_DIR, ['2019Apr'])
     load_csv(TEMP_DIR, engine, 'raw.ais')
 
     ## ---- TESTING ----

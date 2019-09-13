@@ -100,7 +100,7 @@ def json_directory_to_csv(DATA_DIR, TEMP_DIR, list_of_dirs):
 
     # Obtain all json files within subdirectories
     for directory in list_of_dirs:
-        json_dir = DATA_DIR(directory)
+        json_dir = DATA_DIR.joinpath(directory)
         json_files = json_dir.glob('**/*.json')
 
         print(f'Converting JSON files in {DATA_DIR}')
@@ -215,6 +215,8 @@ def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=','):
             head = 'HEADER'
         else:
             head = ''
+        #  TODO: move replacement up to json_directory_to_csv() function
+        f = f.replace('\x00', '')
         cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' {head} CSV", f)
     print(f"{src_file} copied to {dst_table}")
     conn.commit()
