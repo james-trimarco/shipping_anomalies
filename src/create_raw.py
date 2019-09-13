@@ -9,7 +9,7 @@ from etl.load_raw import load_csv
 import argparse
 
 
-def run(read_json, dirs, start_end_days):
+def run(read_json, dirs, date_range):
     """
     Creates raw-cleaned-semantic schemas and populates the raw schema.
 
@@ -19,7 +19,7 @@ def run(read_json, dirs, start_end_days):
         Whether or not the script should read original json files
     dirs: [str]
         List of names of the directories to import
-    start_end_dates: [int]
+    date_range: [int]
         List of two ints with the first and last day to collect files from
 
     Returns
@@ -72,7 +72,7 @@ def run(read_json, dirs, start_end_days):
 
             temp_subdir.mkdir(parents=True, exist_ok=True)
             print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
-            json_count = json_directory_to_csv(temp_subdir, json_subdir, start_end_days)
+            json_count = json_directory_to_csv(temp_subdir, json_subdir, date_range)
             print(f"Converted {json_count} files from {json_subdir.name}")
 
         print(f"Uploading csv files to database from {temp_subdir.name}.")
@@ -112,8 +112,8 @@ if __name__ == '__main__':
     parser.add_argument('-dirs', metavar='-dir',
                         help='Pick the json directories you want to parse',
                         nargs='+', type=str, default=['2019Apr'])
-    parser.add_argument('-se', metavar='-start',
+    parser.add_argument('-dr', metavar='-daterange',
                         help='Pick the first and last day to collect json from',
                         nargs='+', type=int, default=[1, 7])
     args = parser.parse_args()
-    run(args.rj, args.dirs, args.se)
+    run(args.rj, args.dirs, args.dr)
