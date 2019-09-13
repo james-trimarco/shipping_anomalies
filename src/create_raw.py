@@ -9,7 +9,7 @@ from etl.load_raw import load_csv
 import argparse
 
 
-def run(read_json, dirs):
+def run(read_json, dirs, start_end_days):
     """
     Creates raw-cleaned-semantic schemas and populates the raw schema.
 
@@ -17,6 +17,10 @@ def run(read_json, dirs):
     ----------
     read_json: bool
         Whether or not the script should read original json files
+    dirs: [str]
+        List of names of the directories to import
+    start_end_dates: [int]
+        List of two ints with the first and last day to collect files from
 
     Returns
     -------
@@ -34,6 +38,10 @@ def run(read_json, dirs):
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
     print('Running with credentials: ', psql_credentials)
+
+    # Initialize temp dir
+    if not TEMP_DIR.is_dir():
+        TEMP_DIR.mkdir(parents=True, exist_ok=False)
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
@@ -53,7 +61,6 @@ def run(read_json, dirs):
     for subdir in dirs:
         json_subdir = DATA_DIR.joinpath(subdir)
         temp_subdir = TEMP_DIR.joinpath(subdir)
-        temp_subdir.mkdir(parents=True, exist_ok=True)
 
         if read_json:
             #  if we're reading json, we need to clear the temp directory
@@ -63,8 +70,9 @@ def run(read_json, dirs):
                 #  create the temp directory
                 TEMP_DIR.mkdir(parents=True, exist_ok=False)
 
+            temp_subdir.mkdir(parents=True, exist_ok=True)
             print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
-            json_count = json_directory_to_csv(DATA_DIR, temp_subdir, json_subdir)
+            json_count = json_directory_to_csv(temp_subdir, json_subdir, start_end_days)
             print(f"Converted {json_count} files from {json_subdir.name}")
 
         print(f"Uploading csv files to database from {temp_subdir.name}.")
@@ -104,5 +112,8 @@ if __name__ == '__main__':
     parser.add_argument('-dirs', metavar='-dir',
                         help='Pick the json directories you want to parse',
                         nargs='+', type=str, default=['2019Apr'])
+    parser.add_argument('-se', metavar='-start',
+                        help='Pick the first and last day to collect json from',
+                        nargs='+', type=int, default=[1, 7])
     args = parser.parse_args()
-    run(args.rj, args.dirs)
+    run(args.rj, args.dirs, args.se)
