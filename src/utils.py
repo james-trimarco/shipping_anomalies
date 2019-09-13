@@ -114,6 +114,7 @@ def json_directory_to_csv(DATA_DIR, TEMP_DIR, list_of_dirs):
 
             with open((TEMP_DIR / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+                #  TODO: remove all '0x00' characters
 
                 for i, segment in enumerate(data):
 
@@ -215,8 +216,7 @@ def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=','):
             head = 'HEADER'
         else:
             head = ''
-        #  TODO: move replacement up to json_directory_to_csv() function
-        f = f.replace('\x00', '')
         cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' {head} CSV", f)
     print(f"{src_file} copied to {dst_table}")
     conn.commit()
+    conn.close()
