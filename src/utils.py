@@ -1,3 +1,4 @@
+import os
 import sqlalchemy as db
 import yaml
 import csv
@@ -47,7 +48,7 @@ def create_connection_from_dict(dictionary, driver):
 
     Parameters
     ----------
-    drivername : string
+    driver : string
         The driver of the database to connect to e.g. 'postgresql'
     dictionary : dict
         Dict of parameters (e.g. {'host': host, 'user': user})
@@ -88,52 +89,58 @@ def load_yaml(filename):
     return yaml_contents
 
 
-def json_directory_to_csv(DATA_DIR, TEMP_DIR, list_of_dirs):
+def json_directory_to_csv(DATA_DIR, temp_subdir, json_subdir):
     """
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
 
     Parameters:
-    arg1 (class): OS specific path
-    arg2 (class): OS specific path
+    DATA_DIR: OS specific path
+        Path to main data directory
+    temp_subdir: OS specific path
+        Path to the subdirectory to store the csvs in
+    json_subdir: OS specific pth
+        Path to a subdirectory with some subset of the data
+
+    Returns:
+    json_counter: int
+        Records count of processed json files
 
     """
 
-    # Obtain all json files within subdirectories
-    for directory in list_of_dirs:
-        json_dir = DATA_DIR.joinpath(directory)
-        json_files = json_dir.glob('**/*.json')
+    # Obtain all json files within subdirectory
+    json_files = json_subdir.glob('**/*.json')
 
-        print(f'Converting JSON files in {DATA_DIR}')
+    json_counter = 0
+    for json_path in json_files:
 
-        for json_path in json_files:
+        print(f"Processing {json_path}")
+        json_counter += 1
 
-            print(f"Processing {json_path}")
+        with open(json_path) as infile:
+            data = json.load(infile)
 
-            with open(json_path) as infile:
-                data = json.load(infile)
+        with open((temp_subdir / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+            #  TODO: remove all '0x00' characters
 
-            with open((TEMP_DIR / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
-                csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
-                #  TODO: remove all '0x00' characters
+            for i, segment in enumerate(data):
 
-                for i, segment in enumerate(data):
+                # Skip Userinfo row
+                if i == 0:
+                    continue
 
-                    # Skip Userinfo row
-                    if i == 0:
-                        continue
+                else:
+                    for j, observation in enumerate(segment):
 
-                    else:
-                        for j, observation in enumerate(segment):
+                        # Write Header
+                        if j == 0:
+                            csvwriter.writerow(observation.keys())
 
-                            # Write Header
-                            if j == 0:
-                                csvwriter.writerow(observation.keys())
+                        else:
+                            csvwriter.writerow(observation.values())
 
-                            else:
-                                csvwriter.writerow(observation.values())
-
-    print("COMPLETE")
-    time.sleep(3)
+    time.sleep(1)
+    return json_counter
 
 
 def execute_sql(string, engine, read_file, print_=False, return_df=False, chunksize=None, params=None):
@@ -220,3 +227,21 @@ def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=','):
     print(f"{src_file} copied to {dst_table}")
     conn.commit()
     conn.close()
+
+
+def remove_dir(path):
+    """
+    Parameters:
+    path: OS specific path
+        Path to directory to be removed.
+
+    Returns:
+    None
+    """
+    for f in os.listdir(path):
+        child = path.joinpath(f)
+        if child.is_file():
+            child.unlink()
+        else:
+            remove_dir(child)
+    path.rmdir()
