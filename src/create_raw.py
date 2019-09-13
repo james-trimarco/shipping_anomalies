@@ -6,22 +6,22 @@ import os
 import settings
 from utils import create_connection_from_dict, execute_sql, json_directory_to_csv
 from etl.load_raw import load_csv
+import argparse
 
 
-def run():
+def run(read_json=False):
     """
-    Execute Extract-Transform-Load (ETL) process.
+    Creates raw-cleaned-semantic schemas and populates the raw schema.
 
     Parameters
     ----------
-    ROOT_FOLDER : str
-        Directory where the project is stored locally.
-    DATA_FOLDER : str
-        Directory where the raw data are stored locally.
+    read_json: bool
+        Whether or not the script should read original json files
 
     Returns
     -------
     None
+
     """
 
     # Set environment variables
@@ -38,13 +38,10 @@ def run():
     print(BASE_DIR.parts)
     print(TEMP_DIR.parts)
     # transform json to csv
-    #json_directory_to_csv(DATA_FOLDER, TEMP_FOLDER)
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
-    print(psql_credentials)
-
-    # execute_sql(os.path.join(SQL_FOLDER, 'create_schemas.sql'), engine, read_file=True)
+    print('Running with credentials: ', psql_credentials)
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
@@ -62,7 +59,8 @@ def run():
     ## ---- CONVERT JSON TO TEMP CSV ----
 
     print("Converting json; saving to /temp directory")
-    # json_directory_to_csv(DATA_DIR, TEMP_DIR, ['2019Apr'])
+    if read_json:
+        json_directory_to_csv(DATA_DIR, TEMP_DIR, ['2019Apr'])
     load_csv(TEMP_DIR, engine, 'raw.ais')
 
     ## ---- TESTING ----
@@ -72,4 +70,8 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    parser = argparse.ArgumentParser(description='Settings for create_raw')
+    parser.add_argument('read_json', metavar='-j', help='will we import json directories?',
+                        type=bool)
+    args = parser.parse_args()
+    run(args.read_json)
