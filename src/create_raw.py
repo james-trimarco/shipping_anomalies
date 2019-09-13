@@ -40,6 +40,13 @@ def run(read_json, dirs, date_range):
     print('Running with credentials: ', psql_credentials)
 
     # Initialize temp dir
+    if read_json:
+        #  if we're reading json, we need to clear the temp directory
+        if TEMP_DIR.is_dir():
+            print(f"{TEMP_DIR.name} already exists. Deleting.")
+            remove_dir(TEMP_DIR)
+
+    #  create the temp directory if it does not exist
     if not TEMP_DIR.is_dir():
         TEMP_DIR.mkdir(parents=True, exist_ok=False)
 
@@ -59,26 +66,23 @@ def run(read_json, dirs, date_range):
     ## ---- CONVERT JSON TO TEMP CSV ----
 
     for subdir in dirs:
+        #  we need to set up subdirectories to read json from
+        #  and subdirectories to write csvs into
         json_subdir = DATA_DIR.joinpath(subdir)
         temp_subdir = TEMP_DIR.joinpath(subdir)
+        temp_subdir.mkdir(parents=True, exist_ok=True)
 
         if read_json:
-            #  if we're reading json, we need to clear the temp directory
-            if TEMP_DIR.is_dir():
-                print(f"{TEMP_DIR.name} already exists. Deleting.")
-                remove_dir(TEMP_DIR)
-                #  create the temp directory
-                TEMP_DIR.mkdir(parents=True, exist_ok=False)
-
-            temp_subdir.mkdir(parents=True, exist_ok=True)
+            #  now we actually write the csvs into the temp subdirectory
             print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
             json_count = json_directory_to_csv(temp_subdir, json_subdir, date_range)
             print(f"Converted {json_count} files from {json_subdir.name}")
 
+        #  this is where we upload csvs from the database
+        #  the intention is that we sometimes do this with previously parsed csvs
         print(f"Uploading csv files to database from {temp_subdir.name}.")
         load_csv(TEMP_DIR, engine, temp_subdir, 'raw.ais')
         print(f"Finished converted json from {json_subdir.name}")
-
         print(f"Deleting csv files from {temp_subdir.name}")
         remove_dir(temp_subdir)
 
