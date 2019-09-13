@@ -23,7 +23,7 @@ def run(read_json=False):
     None
 
     """
-
+    print("Read json: ", read_json)
     # Set environment variables
     settings.load()
     # Get root directory from environment
@@ -58,15 +58,13 @@ def run(read_json=False):
 
     ## ---- CONVERT JSON TO TEMP CSV ----
 
-    print("Converting json; saving to /temp directory")
     if read_json:
+        print("Converting json; saving to /temp directory")
         json_directory_to_csv(DATA_DIR, TEMP_DIR, ['2019Apr'])
+
     load_csv(TEMP_DIR, engine, 'raw.ais')
 
-    ## ---- TESTING ----
-    test = engine.execute('select * from raw.ais limit 1;') 
-
-    print(test)
+    return
 
 
 if __name__ == '__main__':
