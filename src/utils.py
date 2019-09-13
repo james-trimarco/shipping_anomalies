@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from itertools import chain, repeat
 import time
+import re
 
 
 def create_connection(drivername, username, database, echo=False):
@@ -89,7 +90,7 @@ def load_yaml(filename):
     return yaml_contents
 
 
-def json_directory_to_csv(DATA_DIR, temp_subdir, json_subdir):
+def json_directory_to_csv(temp_subdir, json_subdir, start_end_days):
     """
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
 
@@ -112,8 +113,14 @@ def json_directory_to_csv(DATA_DIR, temp_subdir, json_subdir):
 
     json_counter = 0
     for json_path in json_files:
+        #  import pdb; pdb.set_trace()
+        match: str = re.search('([0-9]){2}(?=_)', json_path.name)
+        day_of_month = int(match.group(0))
+        if day_of_month < start_end_days[0] or day_of_month > start_end_days[1]:
+            continue
 
         print(f"Processing {json_path}")
+
         json_counter += 1
 
         with open(json_path) as infile:
