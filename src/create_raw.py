@@ -31,15 +31,6 @@ def run(read_json, dirs):
     SQL_DIR = BASE_DIR.joinpath('sql')
     TEMP_DIR = settings.get_temp_dir().joinpath('ais_temp')
 
-    # delete old temp dir if exists
-    # import pdb; pdb.set_trace()
-    if TEMP_DIR.is_dir():
-        print(f"{TEMP_DIR.name} already exists. Deleting.")
-        remove_dir(TEMP_DIR)
-
-    # create the temp directory
-    TEMP_DIR.mkdir(parents=True, exist_ok=False)
-
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
     print('Running with credentials: ', psql_credentials)
@@ -65,6 +56,13 @@ def run(read_json, dirs):
         temp_subdir.mkdir(parents=True, exist_ok=True)
 
         if read_json:
+            #  if we're reading json, we need to clear the temp directory
+            if TEMP_DIR.is_dir():
+                print(f"{TEMP_DIR.name} already exists. Deleting.")
+                remove_dir(TEMP_DIR)
+                #  create the temp directory
+                TEMP_DIR.mkdir(parents=True, exist_ok=False)
+
             print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
             json_count = json_directory_to_csv(DATA_DIR, temp_subdir, json_subdir)
             print(f"Converted {json_count} files from {json_subdir.name}")
@@ -86,7 +84,7 @@ def str_to_bool(input_str):
     Parameters:
     input_str: str
     Returns:
-    Boolean or error 
+    Boolean or error
     """
     if isinstance(input_str, bool):
         return input_str
