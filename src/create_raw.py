@@ -4,12 +4,12 @@
 
 import os
 import settings
-from utils import create_connection_from_dict, execute_sql, json_directory_to_csv
+from utils import create_connection_from_dict, execute_sql, json_directory_to_csv, remove_dir
 from etl.load_raw import load_csv
 import argparse
 
 
-def run(read_json=False):
+def run(read_json, dirs):
     """
     Creates raw-cleaned-semantic schemas and populates the raw schema.
 
@@ -23,7 +23,6 @@ def run(read_json=False):
     None
 
     """
-    print("Read json: ", read_json)
     # Set environment variables
     settings.load()
     # Get root directory from environment
@@ -31,13 +30,15 @@ def run(read_json=False):
     DATA_DIR = settings.get_data_dir()
     SQL_DIR = BASE_DIR.joinpath('sql')
     TEMP_DIR = settings.get_temp_dir().joinpath('ais_temp')
-    # create the temp directory
-    # TODO: Should exist_ok be false here?
-    TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
-    print(BASE_DIR.parts)
-    print(TEMP_DIR.parts)
-    # transform json to csv
+    # delete old temp dir if exists
+    # import pdb; pdb.set_trace()
+    if TEMP_DIR.is_dir():
+        print(f"{TEMP_DIR.name} already exists. Deleting.")
+        remove_dir(TEMP_DIR)
+
+    # create the temp directory
+    TEMP_DIR.mkdir(parents=True, exist_ok=False)
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
@@ -58,19 +59,52 @@ def run(read_json=False):
 
     ## ---- CONVERT JSON TO TEMP CSV ----
 
-    if read_json:
-        print("Converting json; saving to /temp directory")
-        json_directory_to_csv(DATA_DIR, TEMP_DIR, ['2019Apr'])
+    for subdir in dirs:
+        json_subdir = DATA_DIR.joinpath(subdir)
+        temp_subdir = TEMP_DIR.joinpath(subdir)
+        temp_subdir.mkdir(parents=True, exist_ok=True)
 
-    load_csv(TEMP_DIR, engine, 'raw.ais')
+        if read_json:
+            print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
+            json_count = json_directory_to_csv(DATA_DIR, temp_subdir, json_subdir)
+            print(f"Converted {json_count} files from {json_subdir.name}")
+
+        print(f"Uploading csv files to database from {temp_subdir.name}.")
+        load_csv(TEMP_DIR, engine, temp_subdir, 'raw.ais')
+        print(f"Finished converted json from {json_subdir.name}")
+
+        print(f"Deleting csv files from {temp_subdir.name}")
+        remove_dir(temp_subdir)
 
     return
 
 
+def str_to_bool(input_str):
+    """
+    Converts string input to boolean
+
+    Parameters:
+    input_str: str
+    Returns:
+    Boolean or error
+    """
+    if isinstance(input_str, bool):
+        return input_str
+    if input_str.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif input_str.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Settings for create_raw')
-    parser.add_argument('read_json', metavar='-j',
+    parser.add_argument('-rj', metavar='-rj',
                         help='will we import json directories?',
-                        type=bool, default=False)
+                        type=str_to_bool, default=False)
+    parser.add_argument('-dirs', metavar='-dir',
+                        help='Pick the json directories you want to parse',
+                        nargs='+', type=str, default=['2019Apr'])
     args = parser.parse_args()
-    run(args.read_json)
+    run(args.rj, args.dirs)
