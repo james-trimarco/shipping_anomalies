@@ -9,7 +9,7 @@ from etl.load_raw import load_csv
 import argparse
 
 
-def run(read_json, dirs):
+def run(read_json, dirs, date_range):
     """
     Creates raw-cleaned-semantic schemas and populates the raw schema.
 
@@ -17,6 +17,10 @@ def run(read_json, dirs):
     ----------
     read_json: bool
         Whether or not the script should read original json files
+    dirs: [str]
+        List of names of the directories to import
+    date_range: [int]
+        List of two ints with the first and last day to collect files from
 
     Returns
     -------
@@ -35,6 +39,17 @@ def run(read_json, dirs):
     psql_credentials = settings.get_psql()
     print('Running with credentials: ', psql_credentials)
 
+    # Initialize temp dir
+    if read_json:
+        #  if we're reading json, we need to clear the temp directory
+        if TEMP_DIR.is_dir():
+            print(f"{TEMP_DIR.name} already exists. Deleting.")
+            remove_dir(TEMP_DIR)
+
+    #  create the temp directory if it does not exist
+    if not TEMP_DIR.is_dir():
+        TEMP_DIR.mkdir(parents=True, exist_ok=False)
+
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
 
@@ -51,26 +66,23 @@ def run(read_json, dirs):
     ## ---- CONVERT JSON TO TEMP CSV ----
 
     for subdir in dirs:
+        #  we need to set up subdirectories to read json from
+        #  and subdirectories to write csvs into
         json_subdir = DATA_DIR.joinpath(subdir)
         temp_subdir = TEMP_DIR.joinpath(subdir)
         temp_subdir.mkdir(parents=True, exist_ok=True)
 
         if read_json:
-            #  if we're reading json, we need to clear the temp directory
-            if TEMP_DIR.is_dir():
-                print(f"{TEMP_DIR.name} already exists. Deleting.")
-                remove_dir(TEMP_DIR)
-                #  create the temp directory
-                TEMP_DIR.mkdir(parents=True, exist_ok=False)
-
+            #  now we actually write the csvs into the temp subdirectory
             print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
-            json_count = json_directory_to_csv(DATA_DIR, temp_subdir, json_subdir)
+            json_count = json_directory_to_csv(temp_subdir, json_subdir, date_range)
             print(f"Converted {json_count} files from {json_subdir.name}")
 
+        #  this is where we upload csvs from the database
+        #  the intention is that we sometimes do this with previously parsed csvs
         print(f"Uploading csv files to database from {temp_subdir.name}.")
         load_csv(TEMP_DIR, engine, temp_subdir, 'raw.ais')
         print(f"Finished converted json from {json_subdir.name}")
-
         print(f"Deleting csv files from {temp_subdir.name}")
         remove_dir(temp_subdir)
 
@@ -104,5 +116,8 @@ if __name__ == '__main__':
     parser.add_argument('-dirs', metavar='-dir',
                         help='Pick the json directories you want to parse',
                         nargs='+', type=str, default=['2019Apr'])
+    parser.add_argument('-dr', metavar='-daterange',
+                        help='Pick the first and last day to collect json from',
+                        nargs='+', type=int, default=[1, 7])
     args = parser.parse_args()
-    run(args.rj, args.dirs)
+    run(args.rj, args.dirs, args.dr)
