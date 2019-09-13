@@ -113,7 +113,8 @@ def json_directory_to_csv(temp_subdir, json_subdir, start_end_days):
 
     json_counter = 0
     for json_path in json_files:
-        #  import pdb; pdb.set_trace()
+        #  Finds the two digits just before the underscore
+        #  These digits represent the day of the month in the filename
         match: str = re.search('([0-9]){2}(?=_)', json_path.name)
         day_of_month = int(match.group(0))
         if day_of_month < start_end_days[0] or day_of_month > start_end_days[1]:
