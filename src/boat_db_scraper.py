@@ -7,60 +7,100 @@ import pandas as pd
 
 
 def boat_text_cleaner(boat_text_list):
+    """
+    Cleans text incoming from Selenium boat db scrape.
+    Parameters:
+    boat_text_list: list
+        List containing text from boat database Selenium scrape
+    Returns:
+    row: list
+        Records to be uploaded to boat entity table in Postgres
+    """
 
-    clean_data = []
+    selected_columns = ['MMSI', 'IMO', 'Call Sign', 'Name', 'Flag',
+                        'Home port', 'Year Built', 'AIS Vessel Type',
+                        'Vessel Type', 'Gross Tonnage', 'Deadweight',
+                        'Length', 'Breadth', 'Photo']
+    boat_dict = {}
+    row = []
 
-    for i, element in enumerate(boat_text_list):
+    for cell in boat_text_list:
 
-        # Check if standard format cell
-        if ':' in element:
+        # Split cell into field and element
+        cell_components = cell.split(':')
+        field = cell_components[0]
+        element = cell_components[1].strip()
 
-            # Check if hyperlink column, done cleaning
-            if i == 19:
-                clean_data.append(element)
-                break
-
-            # Only utilize content right of colon, remove whitespace
-            else:
-                element = element.split(':')[1].strip()
-
-        # Change hyphens to null and skip cleaning
-        else:
-            element = 'NULL'
-            clean_data.append(element)
+        # Check if this field already exists
+        if field in boat_dict:
             continue
 
-        if i == 3:
-            element = element.split(' [')[0]
-            clean_data.append(element)
+        # Check for invalid cell entry
+        if element in {'-', '', 'N/a'}:
+            element = 'NULL'
 
-        # Remove ton units
-        elif i == 6:
-            element = element[:-2]
-            clean_data.append(element)
+        if field == 'Name':
 
-        # Split ship dimensions into two columns
-        elif i == 7:
-            ship_dimensions = element.split('m × ')
+            # Colon in ship name
+            if len(cell_components) > 2 and element != 'NULL':
 
-            # Length
-            clean_data.append(ship_dimensions[0])
+                # Create list to append name pieces
+                name_list = []
 
-            # Breadth
-            clean_data.append(ship_dimensions[1][:-1])
+                # Split with space for renaming
+                name_components = cell.split(': ')
 
-        # Clean
+                # Loop through pieces, correct, and append to list
+                for string_piece in name_components[1:-1]:
+                    corrected_colon = string_piece + ': '
+                    name_list.append(corrected_colon)
+
+                # Append final piece and join list together
+                name_list.append(name_components[-1])
+                element = ''.join(name_list)
+
+        elif field == 'Flag':
+
+            if element == 'NULL':
+                pass
+            else:
+                element = element.split(' [')[0]
+
+        elif field == 'Deadweight':
+
+            if element == 'NULL':
+                pass
+            else:
+                element = element[:-2]
+
+        elif field == 'Length Overall x Breadth Extreme':
+
+            # Check for invalid entry in special 1->2 column
+            if element == 'NULL':
+                boat_dict['Length'] = element
+                boat_dict['Breadth'] = element
+                continue
+
+            else:
+                ship_dimensions = element.split('m × ')
+                boat_dict['Length'] = ship_dimensions[0]
+                boat_dict['Breadth'] = ship_dimensions[1][:-1]
+                continue
+
+        elif field == 'https':
+            boat_dict['Photo'] = field + element
+            continue
+
+        # Write to dictionary
+        boat_dict[field] = element
+
+    for key in selected_columns:
+        if key in boat_dict:
+            row.append(boat_dict[key])
         else:
-            clean_data.append(element)
+            row.append('NULL')
 
-    # Select columns of interest
-    selected_columns = [clean_data[1], clean_data[0], clean_data[2],
-                        clean_data[4], clean_data[3], clean_data[19],
-                        clean_data[9], clean_data[4], clean_data[14],
-                        clean_data[5], clean_data[6], clean_data[7],
-                        clean_data[8], clean_data[20]]
-
-    return selected_columns
+    return row
 
 
 if __name__ == "__main__":
@@ -90,7 +130,5 @@ if __name__ == "__main__":
         text_data.extend(driver.find_element_by_id('vessel_details_general').text.split('\n'))
         text_data.append(driver.find_element_by_xpath('//*[@id="big-image"]/img').get_attribute('src'))
 
-        print(text_data)
-
-        # cleaned = boat_text_cleaner(text_data)
-        # print(cleaned)
+        cleaned = boat_text_cleaner(text_data)
+        print(cleaned)
