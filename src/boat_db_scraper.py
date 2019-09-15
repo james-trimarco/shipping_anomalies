@@ -99,6 +99,8 @@ def boat_text_cleaner(boat_text_list):
             row.append(boat_dict[key])
         else:
             row.append('NULL')
+            
+    #pandas_df_input = dict(zip(selected_columns, row))
 
     return row
 
@@ -122,7 +124,7 @@ if __name__ == "__main__":
         WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
         time.sleep(2)
-
+        
         text_data.extend(driver.find_element_by_class_name('col-xs-6').text.split('\n'))
         text_data.extend(
             driver.find_element_by_xpath('/html/body/main/div/div/div[1]/div[6]/div[1]/div[1]/div/div[2]').text.split(
