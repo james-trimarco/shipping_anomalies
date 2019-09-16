@@ -1,6 +1,6 @@
 #################################################i############
-# Executes various SQL and Python files to run ETL pipeline #
-#############################################################
+# Executes various SQL and Python files to import raw data   #
+##############################################################
 
 import os
 import settings
@@ -11,7 +11,7 @@ import argparse
 
 def run(read_json, dirs, date_range):
     """
-    Creates raw-cleaned-semantic schemas and populates the raw schema.
+    Creates raw-cleaned-semantic schemas and populates the raw schema only.
 
     Parameters
     ----------
@@ -37,18 +37,7 @@ def run(read_json, dirs, date_range):
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
-    print('Running with credentials: ', psql_credentials)
-
-    # Initialize temp dir
-    if read_json:
-        #  if we're reading json, we need to clear the temp directory
-        if TEMP_DIR.is_dir():
-            print(f"{TEMP_DIR.name} already exists. Deleting.")
-            remove_dir(TEMP_DIR)
-
-    #  create the temp directory if it does not exist
-    if not TEMP_DIR.is_dir():
-        TEMP_DIR.mkdir(parents=True, exist_ok=False)
+    #  print('Running with credentials: ', psql_credentials)
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
@@ -110,14 +99,14 @@ def str_to_bool(input_str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Settings for create_raw')
-    parser.add_argument('-rj', metavar='-rj',
+    parser.add_argument('-read_json', metavar='-rj',
                         help='will we import json directories?',
                         type=str_to_bool, default=False)
     parser.add_argument('-dirs', metavar='-dir',
                         help='Pick the json directories you want to parse',
                         nargs='+', type=str, default=['2019Apr'])
-    parser.add_argument('-dr', metavar='-daterange',
+    parser.add_argument('-days', metavar='-daterange',
                         help='Pick the first and last day to collect json from',
                         nargs='+', type=int, default=[1, 7])
     args = parser.parse_args()
-    run(args.rj, args.dirs, args.dr)
+    run(args.read_json, args.dirs, args.days)
