@@ -6,6 +6,45 @@ import time
 import pandas as pd
 
 
+def boat_db_scraper(engine, boat_id):
+    """
+    Scrapes preliminary text from boat database.
+    Parameters:
+    engine: OS Specific Path
+        Path pointing to chrome webdriver for Selenium
+    data: list
+        Unique boat MMSI values
+    Returns:
+    boat_text_list: list
+        Preliminary fields from db scrape
+    """
+    # Initiate list to hold scraped text
+    boat_text_list = []
+    
+    # Navigate to website for boat_id
+    driver.get(
+        'https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=flag,shipname,imo,mmsi,ship_type,show_on_live_map,time_of_latest_position,status,year_of_build,length,width,dwt,callsign&quicksearch|begins|quicksearch=' + boat_id)
+    
+    # Save url and wait for load
+    current_url = driver.current_url
+    time.sleep(2)
+
+    # Click on boat from search
+    driver.find_element_by_class_name('ag-cell-content-link').click()
+
+    # Pause until url changes with load
+    WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+    time.sleep(2)
+    
+    # Scrape fields
+    boat_text_list.extend(driver.find_element_by_class_name('col-xs-6').text.split('\n'))
+    boat_text_list.extend(driver.find_element_by_xpath('/html/body/main/div/div/div[1]/div[6]/div[1]/div[1]/div/div[2]').text.split('\n'))
+    boat_text_list.extend(driver.find_element_by_id('vessel_details_general').text.split('\n'))
+    boat_text_list.append(driver.find_element_by_xpath('//*[@id="big-image"]/img').get_attribute('src'))
+        
+    return boat_text_list
+
+
 def boat_text_cleaner(boat_text_list):
     """
     Cleans text incoming from Selenium boat db scrape.
@@ -100,9 +139,9 @@ def boat_text_cleaner(boat_text_list):
         else:
             row.append('NULL')
             
-    #pandas_df_input = dict(zip(selected_columns, row))
+    pandas_df_input = dict(zip(selected_columns, row))
 
-    return row
+    return pandas_df_input
 
 
 if __name__ == "__main__":
@@ -110,27 +149,12 @@ if __name__ == "__main__":
     driver = webdriver.Chrome(r'C:\Users\Austin\Downloads\chromedriver_win32\chromedriver.exe')
 
     mmsi_list = ['310627000', '367363350', '311042900', '470992000', '246847000']
-
+    
+    pandas_series_list = []
+    
     for boat_id in mmsi_list:
-        text_data = []
-        driver.get(
-            'https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=flag,shipname,imo,mmsi,ship_type,show_on_live_map,time_of_latest_position,status,year_of_build,length,width,dwt,callsign&quicksearch|begins|quicksearch=' + boat_id)
-        current_url = driver.current_url
-
-        time.sleep(2)
-
-        driver.find_element_by_class_name('ag-cell-content-link').click()
-
-        WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-
-        time.sleep(2)
-        
-        text_data.extend(driver.find_element_by_class_name('col-xs-6').text.split('\n'))
-        text_data.extend(
-            driver.find_element_by_xpath('/html/body/main/div/div/div[1]/div[6]/div[1]/div[1]/div/div[2]').text.split(
-                '\n'))
-        text_data.extend(driver.find_element_by_id('vessel_details_general').text.split('\n'))
-        text_data.append(driver.find_element_by_xpath('//*[@id="big-image"]/img').get_attribute('src'))
-
-        cleaned = boat_text_cleaner(text_data)
-        print(cleaned)
+        preliminary_text = boat_db_scraper(driver, boat_id)
+        cleaned_data = boat_text_cleaner(preliminary_text)
+        pandas_series_list.append(cleaned_data)
+    
+    df = pd.DataFrame.from_dict(pandas_series_list)
