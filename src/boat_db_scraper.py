@@ -45,7 +45,6 @@ def boat_db_scraper(engine, boat_id):
 
             # If no boats, return
             if no_boat_text[0:2] == 'No':
-
                 boat_text_list.append('MMSI:' + str(boat_id))
 
                 return boat_text_list
@@ -92,6 +91,7 @@ def boat_db_scraper(engine, boat_id):
             # All methods have failed, boat not in database
             except NoSuchElementException:
                 boat_text_list.append('MMSI:' + str(boat_id))
+                
                 return boat_text_list
 
     # Pause until url changes with load
@@ -195,14 +195,12 @@ def boat_text_cleaner(boat_text_list):
                     element = ''.join(name_list)
 
             elif field == 'Flag':
-
                 if element == 'NULL':
                     pass
                 else:
                     element = element.split(' [')[0]
 
             elif field == 'Deadweight':
-
                 if element == 'NULL':
                     pass
                 else:
