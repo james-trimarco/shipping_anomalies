@@ -57,7 +57,7 @@ def run(read_json, write_json, dirs, date_range):
     ## ---- UPLOAD SHAPEFILES ----
 
     print("Uploading shapefiles")
-    # TODO: get this fully hooked up and working
+    # TODO: get this fully hooked up and working 
     # load_shp(DATA_DIR, dir_dict, credentials_dict):
 
     ## ---- CONVERT JSON TO TEMP CSV ----
