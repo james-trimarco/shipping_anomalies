@@ -87,5 +87,73 @@ ALTER TABLE cleaned.ais
 CREATE INDEX ais_spatial_idx ON cleaned.ais USING gist(location);
 
 
+-- import shapefiles of marine sanctuaries from https://www.protectedplanet.net/
+DROP TABLE if exists cleaned.sanctuaries;
+CREATE TABLE cleaned.sanctuaries (
+    geom            GEOMETRY(MULTIPOLYGON, 4326),  -- This departs from raw rules, but eases import
+    geog            GEOGRAPHY,
+    wdpaid          VARCHAR,
+    wdpa_pid        VARCHAR,
+    pa_def          VARCHAR,
+    name            VARCHAR,
+    orig_name       VARCHAR,
+    desig           VARCHAR,
+    desig_eng       VARCHAR,
+    desig_type      VARCHAR,
+    iucn_cat        VARCHAR,
+    int_crit        VARCHAR,
+    marine          VARCHAR,
+    rep_m_area      VARCHAR,
+    gis_m_area      VARCHAR,
+    rep_area        VARCHAR,
+    gis_area        VARCHAR,
+    no_take         VARCHAR,
+    no_tk_area      VARCHAR,
+    status          VARCHAR,
+    status_yr       VARCHAR,
+    gov_type        VARCHAR,
+    own_type        VARCHAR,
+    mang_auth       VARCHAR,
+    mang_plan       VARCHAR,
+    verif           VARCHAR,
+    metadataid      VARCHAR,
+    sub_loc         VARCHAR,
+    parent_iso      VARCHAR,
+    iso3            VARCHAR
+);
 
-
+INSERT INTO cleaned.sanctuaries
+    SELECT
+        ST_SetSRID(wkb_geometry, 4326) AS geom,
+        wkb_geometry::geography as geog,
+        wdpaid,
+        wdpa_pid,
+        pa_def,
+        name,
+        orig_name,
+        desig,
+        desig_eng,
+        desig_type,
+        iucn_cat,
+        int_crit,
+        marine,
+        rep_m_area,
+        gis_m_area,
+        rep_area,
+        gis_area,
+        no_take,
+        no_tk_area,
+        status,
+        status_yr,
+        gov_type,
+        own_type,
+        mang_auth,
+        mang_plan,
+        verif,
+        metadataid,
+        sub_loc,
+        parent_iso,
+        iso3
+    FROM raw.sanctuaries
+;
+CREATE INDEX sanct_spatial_idx ON cleaned.sanctuaries USING gist(geom);
