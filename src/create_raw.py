@@ -9,7 +9,7 @@ from etl.load_raw import load_csv
 import argparse
 
 
-def run(read_json, dirs, date_range):
+def run(read_json, write_json, dirs, date_range):
     """
     Creates raw-cleaned-semantic schemas and populates the raw schema only.
 
@@ -17,6 +17,8 @@ def run(read_json, dirs, date_range):
     ----------
     read_json: bool
         Whether or not the script should read original json files
+    write_json: bool
+        Whether or not the script should write csvs of ais files
     dirs: [str]
         List of names of the directories to import
     date_range: [int]
@@ -31,7 +33,7 @@ def run(read_json, dirs, date_range):
     settings.load()
     # Get root directory from environment
     BASE_DIR = settings.get_base_dir()
-    DATA_DIR = settings.get_data_dir()
+    AIS_DIR = settings.get_data_dir()
     SQL_DIR = BASE_DIR.joinpath('sql')
     TEMP_DIR = settings.get_temp_dir().joinpath('ais_temp')
 
@@ -52,12 +54,18 @@ def run(read_json, dirs, date_range):
     print("Creating tables")
     execute_sql(os.path.join(SQL_DIR, 'create_tables.sql'), engine, read_file=True)
 
+    ## ---- UPLOAD SHAPEFILES ----
+
+    print("Uploading shapefiles")
+    # TODO: get this fully hooked up and working
+    # load_shp(DATA_DIR, dir_dict, credentials_dict):
+
     ## ---- CONVERT JSON TO TEMP CSV ----
 
     for subdir in dirs:
         #  we need to set up subdirectories to read json from
         #  and subdirectories to write csvs into
-        json_subdir = DATA_DIR.joinpath(subdir)
+        json_subdir = AIS_DIR.joinpath(subdir)
         temp_subdir = TEMP_DIR.joinpath(subdir)
         temp_subdir.mkdir(parents=True, exist_ok=True)
 
@@ -67,13 +75,14 @@ def run(read_json, dirs, date_range):
             json_count = json_directory_to_csv(temp_subdir, json_subdir, date_range)
             print(f"Converted {json_count} files from {json_subdir.name}")
 
-        #  this is where we upload csvs from the database
-        #  the intention is that we sometimes do this with previously parsed csvs
-        print(f"Uploading csv files to database from {temp_subdir.name}.")
-        load_csv(TEMP_DIR, engine, temp_subdir, 'raw.ais')
-        print(f"Finished converted json from {json_subdir.name}")
-        print(f"Deleting csv files from {temp_subdir.name}")
-        remove_dir(temp_subdir)
+        if write_json:
+            #  this is where we upload csvs from the database
+            #  the intention is that we sometimes do this with previously parsed csvs
+            print(f"Uploading csv files to database from {temp_subdir.name}.")
+            load_csv(TEMP_DIR, engine, temp_subdir, 'raw.ais')
+            print(f"Finished converted json from {json_subdir.name}")
+            print(f"Deleting csv files from {temp_subdir.name}")
+            remove_dir(temp_subdir)
 
     return
 
@@ -100,7 +109,10 @@ def str_to_bool(input_str):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Settings for create_raw')
     parser.add_argument('-read_json', metavar='-rj',
-                        help='will we import json directories?',
+                        help='will we import json directories with AIS files?',
+                        type=str_to_bool, default=False)
+    parser.add_argument('-write_json', metavar='-wj',
+                        help='will we write AIS csvs to postgres?',
                         type=str_to_bool, default=False)
     parser.add_argument('-dirs', metavar='-dir',
                         help='Pick the json directories you want to parse',
