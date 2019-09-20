@@ -95,8 +95,6 @@ def json_directory_to_csv(temp_subdir, json_subdir, start_end_days):
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
 
     Parameters:
-    DATA_DIR: OS specific path
-        Path to main data directory
     temp_subdir: OS specific path
         Path to the subdirectory to store the csvs in
     json_subdir: OS specific pth
@@ -125,6 +123,7 @@ def json_directory_to_csv(temp_subdir, json_subdir, start_end_days):
         json_counter += 1
 
         with open(json_path) as infile:
+            # TODO: do it in spark instead
             data = json.load(infile)
 
         with open((temp_subdir / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
