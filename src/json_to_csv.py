@@ -85,8 +85,13 @@ def run(dirs):
         else:
             # now we actually write the csvs into the temp subdirectory
             print(f"Converting json from {json_subdir.name}; saving to {csv_subdir.name}.")
+
+            full_paths = []
+            for path in json_subdir.iterdir():
+                full_paths.append(str(path.resolve()))
+
             p = Pool(10)
-            p.map(json_directory_to_csv, json_subdir.iterdir(), csv_subdir)
+            p.map(json_directory_to_csv, full_paths, csv_subdir)
             print(f"Converted {json_count} files from {json_subdir.name}")
 
 
