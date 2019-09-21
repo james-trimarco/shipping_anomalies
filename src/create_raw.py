@@ -33,7 +33,7 @@ def run():
     settings.load()
     # Get root directory from environment
     BASE_DIR = settings.get_base_dir()
-    AIS_DIR = settings.get_data_dir()
+    JSON_DIR = settings.get_json_dir()
     SQL_DIR = BASE_DIR.joinpath('sql')
     TEMP_DIR = settings.get_temp_dir().joinpath('ais_temp')
 
