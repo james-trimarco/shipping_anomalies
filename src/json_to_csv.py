@@ -3,10 +3,12 @@ import json
 import time
 import argparse
 import settings
+import multiprocessing as mp
 from multiprocessing import Pool
+from functools import partial 
+from pathlib import Path
 
-
-def json_directory_to_csv(csv_subdir, json_path):
+def json_directory_to_csv(json_path, csv_subdir):
     """
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
 
@@ -34,29 +36,34 @@ def json_directory_to_csv(csv_subdir, json_path):
         #     continue
 
     print(f"Processing {json_path}")
+    # print(f"Planning to write to {csv_subdir}")
+    try:
+        json_path = Path(json_path)
+        with open(json_path) as infile:
+            data = json.load(infile)
 
-    with open(json_path) as infile:
-        data = json.load(infile)
+        with open((csv_subdir / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+            #  TODO: remove all '0x00' characters
 
-    with open((csv_subdir / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
-        csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
-        #  TODO: remove all '0x00' characters
+            for i, segment in enumerate(data):
+                # print(segment)
+                # Skip Userinfo row
+                if i == 0:
+                    continue
 
-        for i, segment in enumerate(data):
+                else:
+                    for j, observation in enumerate(segment):
+                        # print(observation)
+                        # Write Header
+                        if j == 0:
+                            csvwriter.writerow(observation.keys())
 
-            # Skip Userinfo row
-            if i == 0:
-                continue
-
-            else:
-                for j, observation in enumerate(segment):
-
-                    # Write Header
-                    if j == 0:
-                        csvwriter.writerow(observation.keys())
-
-                    else:
-                        csvwriter.writerow(observation.values())
+                        else:
+                            csvwriter.writerow(observation.values())
+    
+    except AttributeError:
+        print('Found a string')
 
     time.sleep(1)
 
@@ -79,20 +86,20 @@ def run(dirs):
         json_subdir = JSON_DIR.joinpath(subdir)
         csv_subdir = CSV_DIR.joinpath(subdir)
 
+        print("Is csv_subdir a dir?", csv_subdir.is_dir())
         if not csv_subdir.is_dir():
             csv_subdir.mkdir(parents=True, exist_ok=False)
 
         else:
             # now we actually write the csvs into the temp subdirectory
-            print(f"Converting json from {json_subdir.name}; saving to {csv_subdir.name}.")
+            print(f"Converting json from {str(json_subdir.resolve())}; saving to {str(csv_subdir.resolve())}.")
 
             full_paths = []
             for path in json_subdir.iterdir():
                 full_paths.append(str(path.resolve()))
-
-            p = Pool(10)
-            p.map(json_directory_to_csv, full_paths, csv_subdir)
-            print(f"Converted {json_count} files from {json_subdir.name}")
+            p = Pool(30)
+            p.map(partial(json_directory_to_csv, csv_subdir=csv_subdir), full_paths)
+            # print(f"Converted {json_count} files from {json_subdir.name}")
 
 
 if __name__ == '__main__':
