@@ -64,17 +64,32 @@ def json_directory_to_csv(temp_subdir, json_subdir):
 
 
 def run(dirs):
+    # Set environment variables
+    settings.load()
+    # Get root directory from environment
+    # BASE_DIR = settings.get_base_dir()
+    JSON_DIR = settings.get_json_dir()
+    CSV_DIR = JSON_DIR.joinpath('ais_csv_files')
+
+    if not CSV_DIR.is_dir():
+        CSV_DIR.mkdir(parents=True, exist_ok=False)
+
     for subdir in dirs:
         #  we need to set up subdirectories to read json from
         #  and subdirectories to write csvs into
-        json_subdir = AIS_DIR.joinpath(subdir)
-        temp_subdir = TEMP_DIR.joinpath(subdir)
-        temp_subdir.mkdir(parents=True, exist_ok=True)
+        json_subdir = JSON_DIR.joinpath(subdir)
+        csv_subdir = CSV_DIR.joinpath(subdir)
 
-        #  now we actually write the csvs into the temp subdirectory
-        print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
-        json_count = json_directory_to_csv(temp_subdir, json_subdir)
-        print(f"Converted {json_count} files from {json_subdir.name}")
+        if csv_subdir.is_dir():
+            raise Exception(f"Directory {csv_subdir.name} already exists.")
+            continue
+
+        else:
+            temp_subdir.mkdir(parents=True, exist_ok=False)
+            #  now we actually write the csvs into the temp subdirectory
+            print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
+            json_count = json_directory_to_csv(temp_subdir, json_subdir)
+            print(f"Converted {json_count} files from {json_subdir.name}")
 
 
 if __name__ == '__main__':
