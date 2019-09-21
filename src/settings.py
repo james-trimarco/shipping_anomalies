@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 
+
 def load():
     """
     Looks at the dotenv file to define environment variables.
@@ -39,10 +40,15 @@ def get_base_dir():
     BASE_DIR = Path(__file__).resolve().parent.parent
     return BASE_DIR
 
+
+def get_json_dir():
+    JSON_DIR = Path(os.environ['JSON_DIR'])
+    return JSON_DIR
+
+
 def get_data_dir():
-    DATA_DIR = Path(os.environ['DATA_DIR'])
+    DATA_DIR = Path(os.environ['AIS_DIR'])
     return DATA_DIR
 
-def get_temp_dir():
-    TEMP_DIR = Path(os.environ['TEMP_DIR'])
-    return TEMP_DIR
+
+
