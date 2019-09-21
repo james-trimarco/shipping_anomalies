@@ -6,10 +6,10 @@ import os
 import settings
 from utils import create_connection_from_dict, execute_sql, json_directory_to_csv, remove_dir
 from etl.load_raw import load_csv
-import argparse
 
 
-def run(read_json, write_json, dirs, date_range):
+
+def run():
     """
     Creates raw-cleaned-semantic schemas and populates the raw schema only.
 
@@ -33,7 +33,7 @@ def run(read_json, write_json, dirs, date_range):
     settings.load()
     # Get root directory from environment
     BASE_DIR = settings.get_base_dir()
-    AIS_DIR = settings.get_data_dir()
+    JSON_DIR = settings.get_json_dir()
     SQL_DIR = BASE_DIR.joinpath('sql')
     TEMP_DIR = settings.get_temp_dir().joinpath('ais_temp')
 
@@ -62,18 +62,7 @@ def run(read_json, write_json, dirs, date_range):
 
     ## ---- CONVERT JSON TO TEMP CSV ----
 
-    for subdir in dirs:
-        #  we need to set up subdirectories to read json from
-        #  and subdirectories to write csvs into
-        json_subdir = AIS_DIR.joinpath(subdir)
-        temp_subdir = TEMP_DIR.joinpath(subdir)
-        temp_subdir.mkdir(parents=True, exist_ok=True)
 
-        if read_json:
-            #  now we actually write the csvs into the temp subdirectory
-            print(f"Converting json from {json_subdir.name}; saving to {temp_subdir.name}.")
-            json_count = json_directory_to_csv(temp_subdir, json_subdir, date_range)
-            print(f"Converted {json_count} files from {json_subdir.name}")
 
         if write_json:
             #  this is where we upload csvs from the database
@@ -108,17 +97,6 @@ def str_to_bool(input_str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Settings for create_raw')
-    parser.add_argument('-read_json', metavar='-rj',
-                        help='will we import json directories with AIS files?',
-                        type=str_to_bool, default=False)
-    parser.add_argument('-write_json', metavar='-wj',
-                        help='will we write AIS csvs to postgres?',
-                        type=str_to_bool, default=False)
-    parser.add_argument('-dirs', metavar='-dir',
-                        help='Pick the json directories you want to parse',
-                        nargs='+', type=str, default=['2019Apr'])
-    parser.add_argument('-days', metavar='-daterange',
-                        help='Pick the first and last day to collect json from',
-                        nargs='+', type=int, default=[1, 7])
+
     args = parser.parse_args()
     run(args.read_json, args.dirs, args.days)
