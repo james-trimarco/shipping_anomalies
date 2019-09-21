@@ -3,6 +3,7 @@ import json
 import time
 import argparse
 import settings
+from multiprocessing import Pool
 
 
 def json_directory_to_csv(temp_subdir, json_subdir):
@@ -16,8 +17,7 @@ def json_directory_to_csv(temp_subdir, json_subdir):
         Path to a subdirectory with some subset of the data
 
     Returns:
-    json_counter: int
-        Records count of processed json files
+    None
 
     """
 
@@ -61,7 +61,6 @@ def json_directory_to_csv(temp_subdir, json_subdir):
                             csvwriter.writerow(observation.values())
 
     time.sleep(1)
-    return json_counter
 
 
 def run(dirs):
@@ -88,7 +87,8 @@ def run(dirs):
         else:
             # now we actually write the csvs into the temp subdirectory
             print(f"Converting json from {json_subdir.name}; saving to {csv_subdir.name}.")
-            json_count = json_directory_to_csv(csv_subdir, json_subdir)
+            p = Pool(10)
+            p.map(json_directory_to_csv, json_subdir.iterdir(), csv_subdir)
             print(f"Converted {json_count} files from {json_subdir.name}")
 
 
