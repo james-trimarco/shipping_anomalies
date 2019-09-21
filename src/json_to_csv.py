@@ -6,7 +6,7 @@ import settings
 from multiprocessing import Pool
 
 
-def json_directory_to_csv(temp_subdir, json_subdir):
+def json_directory_to_csv(csv_subdir, json_path):
     """
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
 
@@ -21,11 +21,11 @@ def json_directory_to_csv(temp_subdir, json_subdir):
 
     """
 
-    # Obtain all json files within subdirectory
-    json_files = json_subdir.glob('**/*.json')
-
-    json_counter = 0
-    for json_path in json_files:
+    # # Obtain all json files within subdirectory
+    # json_files = json_subdir.glob('**/*.json')
+    #
+    # json_counter = 0
+    # for json_path in json_files:
         # Finds the two digits just before the underscore
         # These digits represent the day of the month in the filename
         # match: str = re.search('([0-9]){2}(?=_)', json_path.name)
@@ -33,32 +33,30 @@ def json_directory_to_csv(temp_subdir, json_subdir):
         # if day_of_month < start_end_days[0] or day_of_month > start_end_days[1]:
         #     continue
 
-        print(f"Processing {json_path}")
+    print(f"Processing {json_path}")
 
-        json_counter += 1
+    with open(json_path) as infile:
+        data = json.load(infile)
 
-        with open(json_path) as infile:
-            data = json.load(infile)
+    with open((csv_subdir / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+        #  TODO: remove all '0x00' characters
 
-        with open((temp_subdir / json_path.stem).with_suffix('.csv'), 'w', newline='') as csvfile:
-            csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
-            #  TODO: remove all '0x00' characters
+        for i, segment in enumerate(data):
 
-            for i, segment in enumerate(data):
+            # Skip Userinfo row
+            if i == 0:
+                continue
 
-                # Skip Userinfo row
-                if i == 0:
-                    continue
+            else:
+                for j, observation in enumerate(segment):
 
-                else:
-                    for j, observation in enumerate(segment):
+                    # Write Header
+                    if j == 0:
+                        csvwriter.writerow(observation.keys())
 
-                        # Write Header
-                        if j == 0:
-                            csvwriter.writerow(observation.keys())
-
-                        else:
-                            csvwriter.writerow(observation.values())
+                    else:
+                        csvwriter.writerow(observation.values())
 
     time.sleep(1)
 
