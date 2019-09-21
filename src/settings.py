@@ -47,7 +47,7 @@ def get_json_dir():
 
 
 def get_data_dir():
-    DATA_DIR = Path(os.environ['AIS_DIR'])
+    DATA_DIR = Path(os.environ['DATA_DIR'])
     return DATA_DIR
 
 
