@@ -2,12 +2,12 @@ from utils import copy_csv_to_db
 import subprocess
 import os
 
-def load_csv(dir, engine, temp_subdir, out_table):
+def load_csv(dir, engine, out_table):
     """
     Load csv files to database
 
     Parameters:
-    TEMP_DIR : Path object
+    dir : Path object
         Directory where the temporary csv files are stored locally
     engine : SQLAlchemy engine object
         Connection to the target database
@@ -20,9 +20,10 @@ def load_csv(dir, engine, temp_subdir, out_table):
     None
     """
     sep = ','
-    for csvfile in dir.glob('*.'):
-        print(csvfile.name)
-        # copy_csv_to_db(src_file=csvfile, dst_table=out_table, engine=engine, sep=sep)
+    for csv_file in dir.glob('*'):
+        print(csv_file.name)
+        if '.crc' not in csv_file.name and 'SUCCESS' not in csv_file.name:
+            copy_csv_to_db(src_file=csv_file, dst_table=out_table, engine=engine, sep=sep)
 
 
 def load_shp(DATA_DIR, dir_dict, credentials_dict):

@@ -61,20 +61,25 @@ def run():
     # load_shp(DATA_DIR, dir_dict, credentials_dict):
 
     ## ---- WRITE filtered CSVs to db ----
+
     for a in filtered_dir.glob("*/*/*"):
         if a.is_dir():
             filtered_dir = a
 
-
-
+            print("Cleaning data")
+            execute_sql(os.path.join(SQL_DIR, 'clean_data.sql'), engine, read_file=True)
 
         #  this is where we upload csvs from the database
         #  the intention is that we sometimes do this with previously parsed csvs
-            # print(f"Uploading csv files to database from {filtered_dir.name}.")
+            print(f"Uploading csv files to database from {filtered_dir.name}.")
             load_csv(filtered_dir, engine, 'raw.ais')
         # print(f"Finished converted json from {json_subdir.name}")
         # print(f"Deleting csv files from {temp_subdir.name}")
         # remove_dir(temp_subdir)
+
+    ## ---- ClEAN DATA ----
+    print("Cleaning data")
+    execute_sql(os.path.join(sql_dir, 'clean_data.sql'), engine, read_file=True)
 
     return
 

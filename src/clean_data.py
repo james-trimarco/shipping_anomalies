@@ -28,8 +28,7 @@ def run():
 
     ## ---- clean_data ----
 
-    print("Cleaning data")
-    execute_sql(os.path.join(SQL_DIR, 'clean_data.sql'), engine, read_file=True)
+
 
 if __name__ == '__main__':
     run()
