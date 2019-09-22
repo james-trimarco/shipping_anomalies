@@ -1,4 +1,3 @@
--- import csv files with ais output data
 DROP TABLE if exists raw.ais;
 CREATE TABLE raw.ais (
     MMSI        VARCHAR,

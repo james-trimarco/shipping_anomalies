@@ -2,7 +2,7 @@ from utils import copy_csv_to_db
 import subprocess
 import os
 
-def load_csv(TEMP_DIR, engine, temp_subdir, out_table):
+def load_csv(dir, engine, temp_subdir, out_table):
     """
     Load csv files to database
 
@@ -20,8 +20,9 @@ def load_csv(TEMP_DIR, engine, temp_subdir, out_table):
     None
     """
     sep = ','
-    for csvfile in temp_subdir.glob('*.csv'):
-        copy_csv_to_db(src_file=csvfile, dst_table=out_table, engine=engine, sep=sep)
+    for csvfile in dir.glob('*.'):
+        print(csvfile.name)
+        # copy_csv_to_db(src_file=csvfile, dst_table=out_table, engine=engine, sep=sep)
 
 
 def load_shp(DATA_DIR, dir_dict, credentials_dict):

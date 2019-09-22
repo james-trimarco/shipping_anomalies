@@ -6,7 +6,7 @@ import os
 import settings
 from utils import create_connection_from_dict, execute_sql, remove_dir
 from etl.load_raw import load_csv
-
+import argparse
 
 
 def run():
@@ -33,12 +33,9 @@ def run():
     settings.load()
     # Get root directory from environment
     base_dir = settings.get_base_dir()
-    json_dir = settings.get_json_dir()
-    sql_dir = BASE_DIR.joinpath('sql')
+    sql_dir = base_dir.joinpath('sql')
     data_dir = settings.get_data_dir()
     filtered_dir = data_dir.joinpath('ais_filtered')
-    print(str(filtered_dir.resolve()))
-
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
@@ -50,52 +47,36 @@ def run():
     ## ---- CREATE SCHEMAS ----
 
     print("Creating schemas")
-    # execute_sql(os.path.join(SQL_DIR, 'create_schemas.sql'), engine, read_file=True)
+    execute_sql(os.path.join(sql_dir, 'create_schemas.sql'), engine, read_file=True)
 
     ## ---- CREATE TABLES ----
 
     print("Creating tables")
-    # execute_sql(os.path.join(SQL_DIR, 'create_tables.sql'), engine, read_file=True)
+    execute_sql(os.path.join(sql_dir, 'create_tables.sql'), engine, read_file=True)
 
     ## ---- UPLOAD SHAPEFILES ----
 
-    print("Uploading shapefiles")
-    # TODO: get this fully hooked up and working 
+    # print("Uploading shapefiles")
+    # TODO: get this fully hooked up and working
     # load_shp(DATA_DIR, dir_dict, credentials_dict):
 
     ## ---- WRITE filtered CSVs to db ----
+    for a in filtered_dir.glob("*/*/*"):
+        if a.is_dir():
+            filtered_dir = a
 
 
 
 
         #  this is where we upload csvs from the database
         #  the intention is that we sometimes do this with previously parsed csvs
-        # print(f"Uploading csv files to database from {temp_subdir.name}.")
-        # load_csv(TEMP_DIR, engine, temp_subdir, 'raw.ais')
+            # print(f"Uploading csv files to database from {filtered_dir.name}.")
+            load_csv(filtered_dir, engine, 'raw.ais')
         # print(f"Finished converted json from {json_subdir.name}")
         # print(f"Deleting csv files from {temp_subdir.name}")
         # remove_dir(temp_subdir)
 
     return
-
-
-def str_to_bool(input_str):
-    """
-    Converts string input to boolean
-
-    Parameters:
-    input_str: str
-    Returns:
-    Boolean or error
-    """
-    if isinstance(input_str, bool):
-        return input_str
-    if input_str.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif input_str.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 if __name__ == '__main__':

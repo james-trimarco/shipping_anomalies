@@ -1,3 +1,4 @@
+CREATE EXTENSION postgis;
 CREATE SCHEMA if not exists raw;
 -- CREATE SCHEMA if not exists gis;
 CREATE SCHEMA if not exists cleaned;

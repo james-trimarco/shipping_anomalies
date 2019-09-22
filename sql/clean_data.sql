@@ -1,5 +1,3 @@
-select current_timestamp;
-
 DROP TABLE if exists cleaned.ais;
 CREATE TABLE cleaned.ais (
     mmsi            VARCHAR,
