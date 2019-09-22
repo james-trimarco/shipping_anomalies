@@ -62,20 +62,15 @@ def run():
 
     ## ---- WRITE filtered CSVs to db ----
 
-    for a in filtered_dir.glob("*/*/*"):
-        if a.is_dir():
-            filtered_dir = a
+    for path in filtered_dir.glob("*"):
+        if path.is_dir():
+            filtered_subdir = path
+            #  this is where we upload csvs from the database
+            #  the intention is that we sometimes do this with previously parsed csvs
+            print(f"Uploading csv files to database from {filtered_subdir.name}.")
+            load_csv(filtered_subdir, engine, 'raw.ais')
 
-            print("Cleaning data")
-            execute_sql(os.path.join(SQL_DIR, 'clean_data.sql'), engine, read_file=True)
-
-        #  this is where we upload csvs from the database
-        #  the intention is that we sometimes do this with previously parsed csvs
-            print(f"Uploading csv files to database from {filtered_dir.name}.")
-            load_csv(filtered_dir, engine, 'raw.ais')
-        # print(f"Finished converted json from {json_subdir.name}")
-        # print(f"Deleting csv files from {temp_subdir.name}")
-        # remove_dir(temp_subdir)
+        print(f"Finished converted json from {filtered_subdir.name}")
 
     ## ---- ClEAN DATA ----
     print("Cleaning data")
