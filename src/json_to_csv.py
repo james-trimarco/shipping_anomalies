@@ -99,7 +99,7 @@ def run(dirs):
                 full_paths.append(str(path.resolve()))
             p = Pool(30)
             p.map(partial(json_directory_to_csv, csv_subdir=csv_subdir), full_paths)
-            # print(f"Converted {json_count} files from {json_subdir.name}") 
+            # print(f"Converted {json_count} files from {json_subdir.name}")
 
 
 if __name__ == '__main__':

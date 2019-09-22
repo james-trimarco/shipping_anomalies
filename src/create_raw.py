@@ -4,7 +4,7 @@
 
 import os
 import settings
-from utils import create_connection_from_dict, execute_sql, json_directory_to_csv, remove_dir
+from utils import create_connection_from_dict, execute_sql, remove_dir
 from etl.load_raw import load_csv
 
 
@@ -32,10 +32,13 @@ def run():
     # Set environment variables
     settings.load()
     # Get root directory from environment
-    BASE_DIR = settings.get_base_dir()
-    JSON_DIR = settings.get_json_dir()
-    SQL_DIR = BASE_DIR.joinpath('sql')
-    TEMP_DIR = settings.get_temp_dir().joinpath('ais_temp')
+    base_dir = settings.get_base_dir()
+    json_dir = settings.get_json_dir()
+    sql_dir = BASE_DIR.joinpath('sql')
+    data_dir = settings.get_data_dir()
+    filtered_dir = data_dir.joinpath('ais_filtered')
+    print(str(filtered_dir.resolve()))
+
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
@@ -47,12 +50,12 @@ def run():
     ## ---- CREATE SCHEMAS ----
 
     print("Creating schemas")
-    execute_sql(os.path.join(SQL_DIR, 'create_schemas.sql'), engine, read_file=True)
+    # execute_sql(os.path.join(SQL_DIR, 'create_schemas.sql'), engine, read_file=True)
 
     ## ---- CREATE TABLES ----
 
     print("Creating tables")
-    execute_sql(os.path.join(SQL_DIR, 'create_tables.sql'), engine, read_file=True)
+    # execute_sql(os.path.join(SQL_DIR, 'create_tables.sql'), engine, read_file=True)
 
     ## ---- UPLOAD SHAPEFILES ----
 
@@ -60,18 +63,18 @@ def run():
     # TODO: get this fully hooked up and working 
     # load_shp(DATA_DIR, dir_dict, credentials_dict):
 
-    ## ---- CONVERT JSON TO TEMP CSV ----
+    ## ---- WRITE filtered CSVs to db ----
 
 
 
-        if write_json:
-            #  this is where we upload csvs from the database
-            #  the intention is that we sometimes do this with previously parsed csvs
-            print(f"Uploading csv files to database from {temp_subdir.name}.")
-            load_csv(TEMP_DIR, engine, temp_subdir, 'raw.ais')
-            print(f"Finished converted json from {json_subdir.name}")
-            print(f"Deleting csv files from {temp_subdir.name}")
-            remove_dir(temp_subdir)
+
+        #  this is where we upload csvs from the database
+        #  the intention is that we sometimes do this with previously parsed csvs
+        # print(f"Uploading csv files to database from {temp_subdir.name}.")
+        # load_csv(TEMP_DIR, engine, temp_subdir, 'raw.ais')
+        # print(f"Finished converted json from {json_subdir.name}")
+        # print(f"Deleting csv files from {temp_subdir.name}")
+        # remove_dir(temp_subdir)
 
     return
 
@@ -99,4 +102,4 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Settings for create_raw')
 
     args = parser.parse_args()
-    run(args.read_json, args.dirs, args.days)
+    run()
