@@ -47,17 +47,18 @@ def json_directory_to_csv(json_path, csv_subdir):
             #  TODO: remove all '0x00' characters
 
             for i, segment in enumerate(data):
-                # print(segment)
+
                 # Skip Userinfo row
                 if i == 0:
                     continue
 
                 else:
                     for j, observation in enumerate(segment):
-                        # print(observation)
+
                         # Write Header
                         if j == 0:
                             csvwriter.writerow(observation.keys())
+                            csvwriter.writerow(observation.values())
 
                         else:
                             csvwriter.writerow(observation.values())
