@@ -24,7 +24,7 @@ sc = pyspark.SparkContext('local[*]', 'ais', conf)
 # Tell spark to create a session
 from pyspark.sql import SparkSession
 
-sess = SparkSession(sc).builder.config(sc.getConf).config("spark.local.dir", "/Akamai_scratch/").getOrCreate()
+# sess = SparkSession(sc).builder.config(sc.getConf).config("spark.local.dir", "/Akamai_scratch/").getOrCreate()
 sess = SparkSession(sc)
 
 # Hold back on the error messages
@@ -33,9 +33,8 @@ sc.setLogLevel("ERROR")
 all_csv_files = Path('/Akamai/ais_project_data/ais_csv_files/')
 
 for monthly_dir in all_csv_files.glob('*/'):
-    subpath = all_csv_files.joinpath(monthly_dir)
 
-    raw_data = sc.textFile(subpath) \
+    raw_data = sc.textFile(monthly_dir) \
         .map(lambda line: line.split(',')) \
         .map(lambda x: [z.strip('\"') for z in x])
 
@@ -63,7 +62,7 @@ for monthly_dir in all_csv_files.glob('*/'):
     lines = ais_deduped.map(toCSVLine)
 
     deduped_path = Path('/Akamai/ais_project_data/ais_deduped')
-    save_path = deduped_path.joinpath(mothly_dir)
+    save_path = deduped_path.joinpath(mothly_dir.name)
 
     if save_path.is_dir():
         remove_dir(save_path)
