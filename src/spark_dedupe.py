@@ -23,48 +23,55 @@ sc = pyspark.SparkContext('local[*]', 'ais', conf)
 
 # Tell spark to create a session
 from pyspark.sql import SparkSession
+
 sess = SparkSession(sc).builder.config(sc.getConf).config("spark.local.dir", "/Akamai_scratch/").getOrCreate()
 sess = SparkSession(sc)
 
 # Hold back on the error messages
 sc.setLogLevel("ERROR")
 
-path1 = '/Akamai/ais_project_data/ais_csv_files/2019Sep/*.csv'
+all_csv_files = Path('/Akamai/ais_project_data/ais_csv_files/')
 
-raw_data = sc.textFile(path1) \
-            .map(lambda line: line.split(',')) \
-            .map(lambda x: [z.strip('\"') for z in x])
+for monthly_dir in all_csv_files.glob('*/'):
+    subpath = all_csv_files.joinpath(monthly_dir)
 
-# Define header as first row
-header = raw_data.first()
-# Remove header
-ais_with_dupes = raw_data.filter(lambda x: x != header)
+    raw_data = sc.textFile(subpath) \
+        .map(lambda line: line.split(',')) \
+        .map(lambda x: [z.strip('\"') for z in x])
 
-print("Rows in original data: ", ais_with_dupes.count())
+    # Define header as first row
+    header = raw_data.first()
+    # Remove header
+    ais_with_dupes = raw_data.filter(lambda x: x != header)
+    print("Name of subdirectory: ", subpath.name)
+    print("Rows in original data: ", ais_with_dupes.count())
 
-# Remove reviews that share mmsi and time
-# Note that the entire row is the value here
-all_dupes = ais_with_dupes.map(lambda x: ((x[0], x[1]), x))
-# Group by row values, dropping duplicates
-ais_deduped = all_dupes.reduceByKey(lambda x, y: x) \
-                   .map(lambda x: x[1])
+    # Remove reviews that share mmsi and time
+    # Note that the entire row is the value here
+    all_dupes = ais_with_dupes.map(lambda x: ((x[0], x[1]), x))
+    # Group by row values, dropping duplicates
+    ais_deduped = all_dupes.reduceByKey(lambda x, y: x) \
+        .map(lambda x: x[1])
 
-print("Rows in deduped data: ", ais_deduped.count())
-def toCSVLine(data):
-    return ','.join(str(d) for d in data)
+    print("Rows in deduped data: ", ais_deduped.count())
 
-lines = ais_deduped.map(toCSVLine)
 
-cleaned_path = Path('/Akamai/ais_project_data/ais_deduped')
-save_path = cleaned_path.joinpath('sep_spark_output')
+    def toCSVLine(data):
+        return ','.join(str(d) for d in data)
 
-if save_path.is_dir():
-    remove_dir(save_path)
 
-print(save_path.parts)
+    lines = ais_deduped.map(toCSVLine)
 
-lines.saveAsTextFile(str(save_path.resolve()))
+    deduped_path = Path('/Akamai/ais_project_data/ais_deduped')
+    save_path = deduped_path.joinpath(mothly_dir)
 
-end = datetime.datetime.now()
+    if save_path.is_dir():
+        remove_dir(save_path)
 
-print("Runtime: ", end - start)
+    print(save_path.parts)
+
+    lines.saveAsTextFile(str(save_path.resolve()))
+
+    end = datetime.datetime.now()
+
+    print("Runtime: ", end - start)
