@@ -33,8 +33,9 @@ sc.setLogLevel("ERROR")
 all_csv_files = Path('/Akamai/ais_project_data/ais_csv_files/')
 
 for monthly_dir in all_csv_files.glob('*/'):
+    csvs_with_dupes = monthly_dir.glob('*.csv')
 
-    raw_data = sc.textFile(monthly_dir) \
+    raw_data = sc.textFile(csvs_with_dupes) \
         .map(lambda line: line.split(',')) \
         .map(lambda x: [z.strip('\"') for z in x])
 
