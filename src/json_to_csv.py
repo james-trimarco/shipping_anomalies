@@ -8,6 +8,7 @@ from multiprocessing import Pool
 from functools import partial 
 from pathlib import Path
 
+
 def json_directory_to_csv(json_path, csv_subdir):
     """
     Converts AIS JSON files from data folder to CSV files in the temporary folder.
@@ -97,7 +98,7 @@ def run(dirs):
             full_paths = []
             for path in json_subdir.iterdir():
                 full_paths.append(str(path.resolve()))
-            p = Pool(30)
+            p = Pool()
             p.map(partial(json_directory_to_csv, csv_subdir=csv_subdir), full_paths)
             # print(f"Converted {json_count} files from {json_subdir.name}")
 
