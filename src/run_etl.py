@@ -5,7 +5,7 @@
 import os
 import settings
 from utils import create_connection_from_dict, execute_sql, remove_dir
-from etl.load_raw import load_csv
+from etl.load_raw import load_csv, load_iuu_list
 import argparse
 
 
@@ -53,6 +53,11 @@ def run():
 
     print("Creating tables")
     execute_sql(os.path.join(sql_dir, 'create_tables.sql'), engine, read_file=True)
+
+    ## ---- UPLOAD TABLES ----
+
+    # print("Uploading tables")
+    load_iuu_list('IUUList-20190902.txt', engine)
 
     ## ---- UPLOAD SHAPEFILES ----
 
