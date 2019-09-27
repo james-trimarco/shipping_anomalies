@@ -1,5 +1,3 @@
-select current_timestamp;
-
 DROP TABLE if exists cleaned.ais;
 CREATE TABLE cleaned.ais (
     mmsi            VARCHAR,
@@ -84,7 +82,7 @@ ALTER TABLE cleaned.ais
 
 
 -- create spatial index
-CREATE INDEX ais_spatial_idx ON cleaned.ais USING gist(location);
+CREATE INDEX ais_spatial_idx ON cleaned.ais USING gist(geom);
 
 
 -- import shapefiles of marine sanctuaries from https://www.protectedplanet.net/
