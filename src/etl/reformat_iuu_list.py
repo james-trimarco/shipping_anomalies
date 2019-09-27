@@ -1,6 +1,7 @@
 # import settings
 from pathlib import Path
 import pandas as pd
+from utils import copy_csv_to_db
 
 
 def run(filename):
@@ -11,9 +12,21 @@ def run(filename):
                'INTERPOL_Reason', 'NEAFC', 'NEAFC_Reason', 'NAFO', 'NAFO_Reason',
                'SPRFMO', 'SPRFMO_Reason', 'CCSBT', 'CCSBT_Reason', 'GFCM', 'GFCM_Reason', 'NPFC',
                'NPFC_Reason', 'SIOFA', 'SIOFA_Reason']
-    print(pd_test.columns)
 
-    pd_test.rename(columns={'Reason': 'Reason_IOTC',
+    pd_test.rename(columns={'IOTC': 'Date_IOTC',
+                            'ICCAT': 'Date_ICCAT',
+                            'IATTC': 'Date_IATTC',
+                            'WCPFC': 'Date_WCPFC',
+                            'CCAMLR': 'Date_CCAMLR',
+                            'SEAFO': 'Date_SEAFO',
+                            'INTERPOL': 'Date_INTERPOL',
+                            'NEAFC': 'Date_NEAFC',
+                            'NAFO': 'Date_NAFO',
+                            'SPRFMO': 'Date_SPRFMO',
+                            'CCSBT': 'Date_CCSBT',
+                            'GFCM': 'Date_GFCM',
+                            'NPFC': 'Date_NPFC',
+                            'Reason': 'Reason_IOTC',
                             'Reason.1': 'Reason_ICCAT',
                             'Reason.2': 'Reason_IATTC',
                             'Reason.3': 'Reason_WCPFC',
@@ -29,19 +42,13 @@ def run(filename):
                             'Reason.13': 'Reason_SIOFA',
                             }, inplace=True)
 
-    print(pd_test.head(10))
+    pd_test = pd_test.reset_index()
+    long = pd.wide_to_long(pd_test, i='index', j='Violation', stubnames=['Reason', 'Date'], sep="_", suffix='\\w+') \
+             .reset_index()
 
-    long = pd.wide_to_long(pd_test, stubnames=['Reason'], i=[], 'sep='_')
+    long = long.dropna(how = 'all', subset=['Reason', 'Date'])
 
-
-
-    #info_dict = {key: value for (key, value) in iuu.items() if key not in charges}
-    #charges_dict = {key: value for (key, value) in iuu.items() if key in charges}
-        #
-        # info_df = pd.DataFrame(info_dict)
-        # charges_df = pd.DataFrame(charges_dict)
-
-        # print(charges_df.head())
+    print(long.shape)
 
 
 if __name__ == '__main__':
