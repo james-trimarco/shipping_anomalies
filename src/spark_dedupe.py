@@ -32,6 +32,36 @@ sc.setLogLevel("ERROR")
 
 all_csv_files = Path('/Akamai/ais_project_data/ais_csv_files/')
 
+
+bounding_box =  {'FL': {'W': -90.50,
+                        'E': -76.00,
+                        'N': 31.00,
+                        'S': 22.00},
+                 'GU': {'W': -3.00,
+                        'E': 10.50,
+                        'N': 7.50,
+                        'S': -10.00},
+                 'SR': {'W': 70.00,
+                        'E': 90.00,
+                        'N': 23.00,
+                        'S': 0.00},
+                 'BS': {'W': 172.00,
+                        'E': -150.00,
+                        'N': 67.00,
+                        'S': 50.00},
+                 }
+
+
+def ais_in_box(rdd, box):
+    south, north, east, west = box['S'], box['N'], box['E'], box['W']
+    if west < east:
+        return rdd.filter(lambda x: south <= float(x[3]) <= north) \
+                  .filter(lambda x: west <= float(x[2]) <= east)
+    else:
+        return rdd.filter(lambda x: south <= float(x[3]) <= north) \
+                  .filter(lambda x: west <= float(x[2]) <= 180 and -180 <= float(x[2] <= east))
+
+
 for monthly_dir in all_csv_files.glob('*/'):
     csvs_with_dupes = monthly_dir.glob('*.csv')
 
@@ -46,9 +76,17 @@ for monthly_dir in all_csv_files.glob('*/'):
     print("Name of subdirectory: ", subpath.name)
     print("Rows in original data: ", ais_with_dupes.count())
 
+    ais_fl = ais_in_box(ais_with_dupes, bounding_box['FL'])
+    ais_gu = ais_in_box(ais_with_dupes, bounding_box['GU'])
+    ais_sr = ais_in_box(ais_with_dupes, bounding_box['SR'])
+    ais_bs = ais_in_box(ais_with_dupes, bounding_box['BS'])
+
+    ais_bounded = sc.union([ais_fl, ais_gu, ais_sr, ais_bs])
+
+    print("Rows in bounded data: ", ais_bounded.count())
     # Remove reviews that share mmsi and time
     # Note that the entire row is the value here
-    all_dupes = ais_with_dupes.map(lambda x: ((x[0], x[1]), x))
+    all_dupes = ais_bounded.map(lambda x: ((x[0], x[1]), x))
     # Group by row values, dropping duplicates
     ais_deduped = all_dupes.reduceByKey(lambda x, y: x) \
         .map(lambda x: x[1])
@@ -63,7 +101,7 @@ for monthly_dir in all_csv_files.glob('*/'):
     lines = ais_deduped.map(toCSVLine)
 
     deduped_path = Path('/Akamai/ais_project_data/ais_deduped')
-    save_path = deduped_path.joinpath(mothly_dir.name)
+    save_path = deduped_path.joinpath(monthly_dir.name)
 
     if save_path.is_dir():
         remove_dir(save_path)
