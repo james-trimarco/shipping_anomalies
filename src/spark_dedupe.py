@@ -2,6 +2,7 @@ import findspark
 import datetime
 from pathlib import Path
 from utils import remove_dir
+import csv 
 
 # Initialize pyspark finder
 findspark.init()
@@ -49,28 +50,29 @@ bounding_box =  {'FL': {'W': -90.50,
                         'E': 90.00,
                         'N': 23.00,
                         'S': 0.00},
-                 'BS': {'W': 172.00,
-                        'E': -150.00,
-                        'N': 67.00,
-                        'S': 50.00},
                  }
 
 
 def ais_in_boxes(rdd, boxes):
-    fl, gu, sr, bs = boxes['FL'], boxes['GU'], boxes['SR'], boxes['BS']
+    fl, gu, sr = boxes['FL'], boxes['GU'], boxes['SR']
     return rdd.filter(lambda x: (fl['S'] <= float(x[3]) <= fl['N'] and fl['W'] <= float(x[3]) <= fl['E'])
                                 or (gu['S'] <= float(x[3]) <= gu['N'] and gu['W'] <= float(x[3]) <= gu['E'])
-                                or (sr['S'] <= float(x[3]) <= sr['N'] and sr['W'] <= float(x[3]) <= sr['E'])
-                                or (bs['S'] <= float(x[3]) <= bs['N'] and sr['W'] <= float(x[3]) <= 180
-                                    and -180 <= float(x[2] <= bs['E'])))
+                                or (sr['S'] <= float(x[3]) <= sr['N'] and sr['W'] <= float(x[3]) <= sr['E']))
 
 
 for monthly_dir in all_csv_files.glob('*/'):
     csvs_with_dupes = monthly_dir.joinpath('*.csv')
 
-    raw_data = sc.textFile(str(csvs_with_dupes.resolve())) \
-        .map(lambda line: tuple(z.strip('\"') for z in line.split(','))) 
+
+#raw_data = sc.textFile(str(sep_csv_files.resolve())) \
+#                 .map(lambda line: line.split(',')) \
+#                 .map(lambda x: [z.strip('\"') for z in x])
     
+
+    raw_data = sc.textFile(str(csvs_with_dupes.resolve())) \
+                 .mapPartitions(lambda x: csv.reader(x))	
+    #raw_data = sess.read.csv("header","true").rdd
+ 
     
     # Define header as first row
     header = raw_data.first()
@@ -78,7 +80,8 @@ for monthly_dir in all_csv_files.glob('*/'):
     ais_with_dupes = raw_data.filter(lambda x: x != header)
     raw_data.unpersist()
 
-    print(ais_with_dupes.take(5))
+    print('\n' + '#####' + '\n')
+    print(ais_with_dupes.take(1))
     print("Name of subdirectory: ", monthly_dir.name)
     print("Rows in original data: ", ais_with_dupes.count())
 
@@ -91,21 +94,22 @@ for monthly_dir in all_csv_files.glob('*/'):
     # Note that the entire row is the value here
     all_dupes = ais_bounded.map(lambda x: ((x[0], x[1]), x))
     # Group by row values, dropping duplicates
-    #ais_deduped = all_dupes.reduceByKey(lambda x, y: x) \
-    #    .map(lambda x: x[1])
-    ais_deduped = all_dupes.distinct()
+    ais_deduped = all_dupes.reduceByKey(lambda x, y: x) \
+        .map(lambda x: x[1])
+    #ais_deduped = all_dupes.distinct()
     ais_with_dupes.unpersist()
     print("Rows in deduped data: ", ais_deduped.count())
 
 
     def toCSVLine(data):
-        return ','.join(str(d) for d in data)
+        return '\t'.join(str(d) for d in data)
 
 
     lines = ais_deduped.map(toCSVLine)
 
     deduped_path = Path('/Akamai/ais_project_data/ais_deduped')
-    save_path = deduped_path.joinpath(monthly_dir.name)
+    #save_path = deduped_path.joinpath(monthly_dir.name)
+    save_path = deduped_path.joinpath('2019Sep')
 
     if save_path.is_dir():
         remove_dir(save_path)
