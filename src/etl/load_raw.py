@@ -19,7 +19,7 @@ def load_csv(dir, engine, out_table):
     Returns:
     None
     """
-    sep = ','
+    sep = '\t'
     for csv_file in dir.glob('*'):
         print(csv_file.name)
         if '.crc' not in csv_file.name and 'SUCCESS' not in csv_file.name:
