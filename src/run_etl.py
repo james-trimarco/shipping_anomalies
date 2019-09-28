@@ -35,7 +35,7 @@ def run():
     base_dir = settings.get_base_dir()
     sql_dir = base_dir.joinpath('sql')
     data_dir = settings.get_data_dir()
-    filtered_dir = data_dir.joinpath('ais_filtered')
+    filtered_dir = data_dir.joinpath('ais_deduped')
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
