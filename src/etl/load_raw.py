@@ -2,7 +2,7 @@ from utils import copy_csv_to_db
 import subprocess
 import os
 
-def load_csv(dir, engine, out_table):
+def load_csv(dir, engine, out_table, sep=',', quote='"'):
     """
     Load csv files to database
 
@@ -19,11 +19,10 @@ def load_csv(dir, engine, out_table):
     Returns:
     None
     """
-    sep = '\t'
     for csv_file in dir.glob('*'):
-        print(csv_file.name)
         if '.crc' not in csv_file.name and 'SUCCESS' not in csv_file.name:
-            copy_csv_to_db(src_file=csv_file, dst_table=out_table, engine=engine, sep=sep)
+            print(csv_file.name)
+            copy_csv_to_db(src_file=csv_file, dst_table=out_table, engine=engine, sep=sep, quote=quote)
 
 
 def load_shp(DATA_DIR, dir_dict, credentials_dict):
