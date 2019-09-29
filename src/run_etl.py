@@ -68,7 +68,7 @@ def run():
             #  this is where we upload csvs from the database
             #  the intention is that we sometimes do this with previously parsed csvs
             print(f"Uploading csv files to database from {filtered_subdir.name}.")
-            load_csv(filtered_subdir, engine, 'raw.ais')
+            load_csv(filtered_subdir, engine, 'raw.ais', sep='\t', quote='\b')
 
         print(f"Finished converted json from {filtered_subdir.name}")
 
