@@ -136,7 +136,7 @@ def execute_sql(string, engine, read_file, print_=False, return_df=False, chunks
         engine.execute(query)
 
 
-def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=','):
+def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=',', quote='"'):
     """
     Copy a csv or txt file to a specified database, where the corresponding table has been created
 
@@ -169,7 +169,7 @@ def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=','):
             head = 'HEADER'
         else:
             head = ''
-        cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' {head} CSV", f)
+        cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' QUOTE '{quote}' {head} CSV", f)
     print(f"{src_file} copied to {dst_table}")
     conn.commit()
     conn.close()
