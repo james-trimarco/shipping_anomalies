@@ -19,7 +19,7 @@ def load_csv(dir, engine, out_table, sep=',', quote='"'):
     Returns:
     None
     """
-    for csv_file in dir.glob('*'):
+    for csv_file in dir.iterdir():
         if '.crc' not in csv_file.name and 'SUCCESS' not in csv_file.name:
             print(csv_file.name)
             copy_csv_to_db(src_file=csv_file, dst_table=out_table, engine=engine, sep=sep, quote=quote)

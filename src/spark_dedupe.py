@@ -46,7 +46,7 @@ bounding_box =  {'FL': {'W': -90.50,
                         'E': 10.50,
                         'N': 7.50,
                         'S': -10.00},
-                 'SR': {'W': 70.00,
+                 'SR': {'W': 77.00,
                         'E': 90.00,
                         'N': 23.00,
                         'S': 0.00},
@@ -55,9 +55,9 @@ bounding_box =  {'FL': {'W': -90.50,
 
 def ais_in_boxes(rdd, boxes):
     fl, gu, sr = boxes['FL'], boxes['GU'], boxes['SR']
-    return rdd.filter(lambda x: (fl['S'] <= float(x[3]) <= fl['N'] and fl['W'] <= float(x[3]) <= fl['E'])
-                                or (gu['S'] <= float(x[3]) <= gu['N'] and gu['W'] <= float(x[3]) <= gu['E'])
-                                or (sr['S'] <= float(x[3]) <= sr['N'] and sr['W'] <= float(x[3]) <= sr['E']))
+    return rdd.filter(lambda x: (fl['S'] <= float(x[3]) <= fl['N'] and fl['W'] <= float(x[2]) <= fl['E'])
+                                or (gu['S'] <= float(x[3]) <= gu['N'] and gu['W'] <= float(x[2]) <= gu['E'])
+                                or (sr['S'] <= float(x[3]) <= sr['N'] and sr['W'] <= float(x[2]) <= sr['E']))
 
 
 for monthly_dir in all_csv_files.glob('*/'):
@@ -108,8 +108,8 @@ for monthly_dir in all_csv_files.glob('*/'):
     lines = ais_deduped.map(toCSVLine)
 
     deduped_path = Path('/Akamai/ais_project_data/ais_deduped')
-    #save_path = deduped_path.joinpath(monthly_dir.name)
-    save_path = deduped_path.joinpath('2019Sep')
+    save_path = deduped_path.joinpath(monthly_dir.name)
+    #save_path = deduped_path.joinpath('2019Sep')
 
     if save_path.is_dir():
         remove_dir(save_path)
