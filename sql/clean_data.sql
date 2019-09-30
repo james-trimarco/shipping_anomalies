@@ -5,7 +5,7 @@ CREATE TABLE cleaned.ais (
     longitude       VARCHAR,
     latitude        VARCHAR,
     geom            GEOMETRY(Point, 4326),  -- this sets the GEOM COLUMN SRID AS 4326
---  geog            GEOGRAPHY,
+    geog            GEOGRAPHY,
     cog             FLOAT,
     sog             FLOAT,
     heading         INT,
@@ -30,7 +30,7 @@ INSERT INTO cleaned.ais
         longitude::float,
         latitude::float,
         ST_SetSRID(ST_MakePoint(longitude::float, latitude::float), 4326) AS location,  -- this sets the GEOM COLUMN SRID AS 4326
-    --  geog,
+        geog,
         cog::float,
         sog::float,
         heading::int,
