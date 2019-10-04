@@ -3,7 +3,7 @@ from utils import create_connection_from_dict, execute_sql
 import findspark
 findspark.init()
 import pyspark
-
+import pandas as pd
 
 # Configure Spark
 conf = pyspark.SparkConf()
@@ -37,7 +37,8 @@ def run():
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
 
     df_to_visualize = execute_sql('select mmsi, time_stamp, longitude, latitude from cleaned.ais limit 50000',
-                                  engine, return_df=True)
+                                  engine, read_file = False, 
+                                  return_df=True)
 
     print(df_to_visualize.head(5))
 
