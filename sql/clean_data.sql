@@ -5,7 +5,7 @@ CREATE TABLE cleaned.ais (
     longitude       VARCHAR,
     latitude        VARCHAR,
     geom            GEOMETRY(Point, 4326),  -- this sets the GEOM COLUMN SRID AS 4326
-    geog            GEOGRAPHY,
+    -- geog            GEOGRAPHY,
     cog             FLOAT,
     sog             FLOAT,
     heading         INT,
@@ -29,8 +29,8 @@ INSERT INTO cleaned.ais
         time::timestamp with time zone at time zone 'GMT' AS time_stamp,
         longitude::float,
         latitude::float,
-        ST_SetSRID(ST_MakePoint(longitude::float, latitude::float), 4326) AS geom  -- this sets the GEOM COLUMN SRID AS 4326
-        geography(geom) as geog,
+        ST_SetSRID(ST_MakePoint(longitude::float, latitude::float), 4326) AS geom,  -- this sets the GEOM COLUMN SRID AS 4326
+        --  geography(geom) as geog,
         cog::float,
         sog::float,
         heading::int,
