@@ -4,6 +4,7 @@ import findspark
 findspark.init()
 import pyspark
 import pandas as pd
+import pytz
 
 # Configure Spark
 conf = pyspark.SparkConf()
@@ -19,8 +20,8 @@ sc = pyspark.SparkContext('local[*]', 'airports', conf)
 # Tell spark to create a session
 from pyspark.sql import SparkSession
 
-sess = SparkSession.builder.config(conf=conf).getOrCreate()
-sess = SparkSession(sc)
+#sess = SparkSession.builder.config(conf=conf).getOrCreate()
+#sess = SparkSession(sc)
 
 
 def run():
@@ -35,12 +36,34 @@ def run():
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
-
-    df_to_visualize = execute_sql('select mmsi, time_stamp, longitude, latitude from cleaned.ais limit 50000',
+    # Get data to process from postgres
+    df = execute_sql("""
+                     WITH sample as (
+SELECT mmsi,
+       time_stamp::DATE
+    FROM eda.CNN_SAMPLE_3 
+    GROUP BY mmsi,
+             time_stamp::DATE
+            HAVING count(*) > 50
+            LIMIT 500
+    ) SELECT c.* FROM eda.CNN_SAMPLE_3 c 
+INNER JOIN sample s
+ON c.mmsi = s.mmsi
+AND c.time_stamp::DATE = s.time_stamp::DATE;
+                     """,
                                   engine, read_file = False, 
                                   return_df=True)
-
-    print(df_to_visualize.head(5))
+    # Set data type of time_stamp column
+    df['time_stamp']=pd.to_datetime(df['time_stamp'], format='%Y-%m-%d %H:%M:%S')
+    # Set df index
+    df.set_index('time_stamp')
+    # Filter by date and mmsi
+    timezone = pytz.timezone('GMT')
+    capture_date = pd.datetime(2019, 4, 22)
+    capture_date = timezone.localize(capture_date)
+    df_test = df.loc[df['time_stamp']==capture_date]
+    print(df.count())
+    print(df_test.count())
 
 
 
