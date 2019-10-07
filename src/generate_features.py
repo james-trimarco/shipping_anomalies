@@ -5,6 +5,7 @@ findspark.init()
 import pyspark
 import pandas as pd
 import pytz
+from feature_generation.create_images import vessel_img, img_reduce
 
 # Configure Spark
 conf = pyspark.SparkConf()
@@ -54,19 +55,20 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
                                   engine, read_file = False, 
                                   return_df=True)
     # Set data type of time_stamp column
-    df['time_stamp']=pd.to_datetime(df['time_stamp'], format='%Y-%m-%d %H:%M:%S')
+    df['time_stamp']=pd.to_datetime(df['time_stamp'])
     # Set df index
-    df.set_index('time_stamp')
+    df.index = df['time_stamp']
+    #print(df.info())
     # Filter by date and mmsi
     timezone = pytz.timezone('GMT')
-    capture_date = pd.datetime(2019, 4, 22)
-    capture_date = timezone.localize(capture_date)
-    df_test = df.loc[df['time_stamp']==capture_date]
-    print(df.count())
-    print(df_test.count())
-
-
-
+    #print("count: ", df['mmsi'].resample('D').count())
+    df_group = df.groupby([pd.Grouper(freq='D'), 'mmsi'])
+    #df_group.apply(lambda x: print(x.count()))
+    for name, group in df_group:
+        #print(name)
+        #print(group)
+        vessel_img(group)
+        break
 
 if __name__ == '__main__':
 
