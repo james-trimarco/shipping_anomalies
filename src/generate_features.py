@@ -95,4 +95,4 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     
 if __name__ == '__main__':
 
-    run()
+    run() 
