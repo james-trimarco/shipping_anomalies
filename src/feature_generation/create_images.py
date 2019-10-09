@@ -13,7 +13,7 @@ def increment_matrix(matrix, index):
     np.add.at(matrix, index, 1)
     return matrix
 
-def vessel_img(df, window_lon, window_lat, pixel_width=12):
+def vessel_img(df, window_lon, window_lat, pixel_width=64):
     df = df.reset_index(drop=True)
     center_point = (df['latitude'].mean(), df['longitude'].mean())
     lower_left = (center_point[0] - (window_lat/2), center_point[1] - (window_lon/2)) 
@@ -23,8 +23,8 @@ def vessel_img(df, window_lon, window_lat, pixel_width=12):
     # subtract the previous round off from lat/lon, then divide by .00078125 (.1/128)
     # to get which point in that image should be incremented
     # rows of df have lat-long values
-    df['px'] = df.apply(lambda row: (np.digitize(row['latitude'], lat_bins) - 1, 
-                                          np.digitize(row['longitude'], lon_bins) - 1), axis = 1)
+    df['px'] = df.apply(lambda row: (np.digitize(row['latitude'], lat_bins), 
+                                          np.digitize(row['longitude'], lon_bins)), axis = 1)
     #print(df.head(10))
     #df['img_pnt'] = (int((df['latitude'] - round(df['longitude'], 1)) / (.00078125)),
     #                 int((df['latitude'] - round(df['longitude'], 1)) / (.00078125)))
@@ -32,12 +32,10 @@ def vessel_img(df, window_lon, window_lat, pixel_width=12):
     try:
         df['img'] = df.apply(lambda row: increment_matrix(row['img'], row['px']), axis=1)
     except:
-        print("A problem occurred")
-    img = df['img'].sum()
-    print(pd.DataFrame(img), '\n')
-    # we are performing these actions on single pings, so add this ping in the img_dic
-    #import pdb; pdb.set_trace()
-    #df['img']= df['img'].apply(lambda x: np.add.at(x, (2, 2), 1))
-    # pretend df was always a spark dataframe and the assignments above were done by mapping (lol)
-    # df structure will be mapped down to MMSI,timechunk,img_dict
-    #return df.groupby(['mmsi', 'timechunk']).reduce(lambda x, y: x[:2] + [imgreduce(x[2], y[2])])
+        print("Point out of range.")
+        #print("pixel index: ", df['px'])
+    img = df['img'].sum().reshape(-1)
+    img = df['img'].sum().reshape(-1)
+    #import pdb; pdb.set_trace()    
+    #summary_df = pd.DataFrame([
+    return img.tolist()
