@@ -38,26 +38,26 @@ all_csv_files = Path('/Akamai/ais_project_data/ais_csv_files/')
 sep_csv_files = Path('/Akamai/ais_project_data/ais_csv_files/2019Sep/*.csv')
 
 
-bounding_box =  {'FL': {'W': -90.50,
-                        'E': -76.00,
-                        'N': 31.00,
-                        'S': 22.00},
-                 'GU': {'W': -3.00,
-                        'E': 10.50,
-                        'N': 7.50,
-                        'S': -10.00},
-                 'SR': {'W': 77.00,
-                        'E': 90.00,
-                        'N': 23.00,
-                        'S': 0.00},
+bounding_box =  {'CS': {'W': -12.00,
+                        'E': 0.00,
+                        'N': 52.00,
+                        'S': 47.00},
+                 'YS': {'W': 116.00,
+                        'E': 127.50,
+                        'N': 41.50,
+                        'S': 34.00},
+                 'AS': {'W': 11.50,
+                        'E': 20.75,
+                        'N': 46.00,
+                        'S': 38.60},
                  }
 
 
 def ais_in_boxes(rdd, boxes):
-    fl, gu, sr = boxes['FL'], boxes['GU'], boxes['SR']
-    return rdd.filter(lambda x: (fl['S'] <= float(x[3]) <= fl['N'] and fl['W'] <= float(x[2]) <= fl['E'])
-                                or (gu['S'] <= float(x[3]) <= gu['N'] and gu['W'] <= float(x[2]) <= gu['E'])
-                                or (sr['S'] <= float(x[3]) <= sr['N'] and sr['W'] <= float(x[2]) <= sr['E']))
+    cs, ys, ads = boxes['CS'], boxes['YS'], boxes['AS']
+    return rdd.filter(lambda x: (cs['S'] <= float(x[3]) <= cs['N'] and cs['W'] <= float(x[2]) <= cs['E'])
+                                or (ys['S'] <= float(x[3]) <= ys['N'] and ys['W'] <= float(x[2]) <= ys['E'])
+                                or (ads['S'] <= float(x[3]) <= ads['N'] and ads['W'] <= float(x[2]) <= ads['E']))
 
 
 for monthly_dir in all_csv_files.glob('*/'):

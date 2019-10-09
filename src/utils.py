@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import time
 import re
-
+import pandas as pd
 
 def create_connection(drivername, username, database, echo=False):
     """
