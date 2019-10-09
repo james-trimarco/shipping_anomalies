@@ -4,8 +4,9 @@ import findspark
 findspark.init()
 import pyspark
 import pandas as pd
-import pytz
+import numpy as np
 from feature_generation.create_images import vessel_img, img_reduce
+import time 
 
 # Configure Spark
 conf = pyspark.SparkConf()
@@ -29,6 +30,7 @@ def run():
     """
     TODO: write docstring
     """
+    start = time.time()
     # Set environment variables
     settings.load()
     # Get PostgreSQL database credentials
@@ -56,20 +58,41 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
                                   return_df=True)
     # Set data type of time_stamp column
     df['time_stamp']=pd.to_datetime(df['time_stamp'])
+    df['longitude'] = pd.to_numeric(df['longitude'])
+    df['latitude'] = pd.to_numeric(df['latitude'])
     # Set df index
     df.index = df['time_stamp']
     #print(df.info())
     # Filter by date and mmsi
-    timezone = pytz.timezone('GMT')
-    #print("count: ", df['mmsi'].resample('D').count())
     df_group = df.groupby([pd.Grouper(freq='D'), 'mmsi'])
+    traj_lon = df_group['longitude'].agg(np.ptp)
+    traj_lat = df_group['latitude'].agg(np.ptp)
+    window_lon = traj_lon.mean() + 2*traj_lon.std() 
+    window_lat = traj_lat.mean() + 2*traj_lat.std()
+    print("window size : ", round(window_lon, 2), ' ', round(window_lat, 2)) 
     #df_group.apply(lambda x: print(x.count()))
+    width = 64 # TODO: pass this in dynamically
+    height = 64
+    i = 0
+    rows_list = []
     for name, group in df_group:
-        #print(name)
-        #print(group)
-        vessel_img(group)
-        break
-
+        #import pdb; pdb.set_trace()
+        row_dict = {'traj_id': str(name[1]) + '-' + str(name[0].date()),
+                    'day': name[0].date(),
+                    'mmsi': name[1],
+                    'img': vessel_img(group, window_lon, window_lat),                    
+                    'width': width, 
+                    'height': height}
+        rows_list.append(row_dict)
+        i+=1
+    img_df = pd.DataFrame(rows_list, columns = ['traj_id', 'mmsi', 'day', 'img'])
+    print(f"created {i} trajectories.")
+    print(img_df.head(20))
+    img_df.to_sql('images',  engine, schema='features',  if_exists = 'append', 
+                   index=False)
+    end = time.time()
+    print(end - start)
+    
 if __name__ == '__main__':
 
     run()
