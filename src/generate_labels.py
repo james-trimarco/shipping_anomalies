@@ -16,9 +16,11 @@ def run():
     img_df = execute_sql('select * from features.images', engine, read_file=False, return_df=True)
 
     for i, row in img_df.iterrows():
-        img = row['img']
+        img = [float(pix) for pix in  row['img'].replace('{', '').replace('}', '').split(',')]
         print(f"showing image for trajectory {row['traj_id']}")
+        #import pdb;pdb.set_trace()
         show_image(img)
+        y = input('Is this fishing?')
 
 if __name__ == '__main__':
     run()
