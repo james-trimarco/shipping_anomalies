@@ -55,3 +55,4 @@ CREATE TABLE raw.sanctuaries (
     parent_iso      VARCHAR, 
     iso3            VARCHAR
 );
+
