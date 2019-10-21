@@ -22,7 +22,7 @@ import time
 # sc = pyspark.SparkContext('local[*]', 'airports', conf)
 
 # Tell spark to create a session
-from pyspark.sql import SparkSession
+#from pyspark.sql import SparkSession
 
 
 # sess = SparkSession.builder.config(conf=conf).getOrCreate()
@@ -77,8 +77,8 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     ### CREATE QUANT FEATURES
     rows_list = []
     for name, group in df_group:
-        import pdb; pdb.set_trace()
-        compute_quants(df_group)
+        a = compute_quants(group[['time_stamp', 'longitude', 'latitude']])
+        print(a.head())
         row_dict = {'traj_id': str(name[1]) + '-' + str(name[0].date()),
                     'day': name[0].date(),
                     'mmsi': name[1],
