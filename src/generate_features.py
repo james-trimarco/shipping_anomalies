@@ -75,17 +75,13 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     print("window size : ", round(window_lon, 2), ' ', round(window_lat, 2))
 
     ### CREATE QUANT FEATURES
-    rows_list = []
     for name, group in df_group:
-        a = compute_quants(group[['time_stamp', 'longitude', 'latitude']])
-        print(a.head())
-        row_dict = {'traj_id': str(name[1]) + '-' + str(name[0].date()),
-                    'day': name[0].date(),
-                    'mmsi': name[1],
-                    'img': vessel_img(group, window_lon, window_lat),
-                    'width': width,
-                    'height': height}
-        rows_list.append(row_dict)
+        quants = compute_quants(group[['time_stamp', 'longitude', 'latitude']])
+        quants['traj_id'] = str(name[1]) + '-' + str(name[0].date())
+        quants['day'] = name[0].date()
+        quants['mmsi'] = name[1]
+        quants.to_sql('quants', engine, schema='features', if_exists='append',
+                      index=False)
 
     ### CREATE TABLE OF IMAGES
 
