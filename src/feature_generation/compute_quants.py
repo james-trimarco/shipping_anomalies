@@ -37,7 +37,7 @@ def give_angle(v_y, v_x):
                 return 270
 
 
-def fitEllipse(x, y):
+def fit_ellipse(x, y):
     x = x[:, np.newaxis]
     y = y[:, np.newaxis]
     D = np.hstack((x * x, x * y, y * y, x, y, np.ones_like(x)))
@@ -69,7 +69,7 @@ def ellipse_axis_length(a):
     return res1, res2
 
 
-def cluster_metrics(trajpd):
+def compute_quants(trajpd):
     # Must write a function that creates one pandas Series for each input with 5 to 10 numerical features
 
     ##SHAPES

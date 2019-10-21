@@ -19,7 +19,7 @@ import time
 # conf.set("spark.sql.shuffle.partitions", "2500")
 
 # Tell Spark to use all the local clusters
-sc = pyspark.SparkContext('local[*]', 'airports', conf)
+# sc = pyspark.SparkContext('local[*]', 'airports', conf)
 
 # Tell spark to create a session
 from pyspark.sql import SparkSession
@@ -75,6 +75,17 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     print("window size : ", round(window_lon, 2), ' ', round(window_lat, 2))
 
     ### CREATE QUANT FEATURES
+    rows_list = []
+    for name, group in df_group:
+        import pdb; pdb.set_trace()
+        compute_quants(df_group)
+        row_dict = {'traj_id': str(name[1]) + '-' + str(name[0].date()),
+                    'day': name[0].date(),
+                    'mmsi': name[1],
+                    'img': vessel_img(group, window_lon, window_lat),
+                    'width': width,
+                    'height': height}
+        rows_list.append(row_dict)
 
     ### CREATE TABLE OF IMAGES
 
@@ -83,7 +94,6 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     i = 0
     rows_list = []
     for name, group in df_group:
-        # import pdb; pdb.set_trace()
         row_dict = {'traj_id': str(name[1]) + '-' + str(name[0].date()),
                     'day': name[0].date(),
                     'mmsi': name[1],
