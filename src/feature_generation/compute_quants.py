@@ -69,7 +69,7 @@ def ellipse_axis_length(a):
     return res1, res2
 
 
-def compute_quants(trajpd):
+def compute_quants(df):
     # Must write a function that creates one pandas Series for each input with 5 to 10 numerical features
 
     ##SHAPES
@@ -85,30 +85,32 @@ def compute_quants(trajpd):
     # 30+ Degree Turns
 
     # First convert initial rows to a form that includes velocity
-    trajpd = trajpd.sort_values('time')
-    trajpd_diff = trajpd.diff()
-
+    # import pdb; pdb.set_trace()
+    trajpd = df.sort_index()
+    trajpd_diff = trajpd.diff().dropna()
+    print(trajpd.head())
     # Set NA values on first step to 0, but set first time value to 1 for division (set back to 0 later for distributions)
-    trajpd_diff.loc[0] = 0
-    trajpd_diff['time'][0] = 1
+    # trajpd_diff.loc[0] = 0
+    # trajpd_diff['time_stamp'][0] = 1
+    trajpd['t_lag'] = trajpd_diff['time_stamp']
+    trajpd['lat_lag'] = trajpd_diff['latitude']
+    trajpd['v_lat'] = trajpd_diff['latitude'] / (trajpd_diff['time_stamp'].dt.total_seconds() )
+    trajpd['lon_lag'] = trajpd_diff['longitude']
+    trajpd['v_lon'] = trajpd_diff['longitude'] / (trajpd_diff['time_stamp'].dt.total_seconds() )
 
-    trajpd['t_lag'] = trajpd_diff['time']
-    trajpd['lat_lag'] = trajpd_diff['lat']
-    trajpd['v_lat'] = trajpd_diff['lat'] / trajpd_diff['time']
-    trajpd['lon_lag'] = trajpd_diff['lon']
-    trajpd['v_lon'] = trajpd_diff['lon'] / trajpd_diff['time']
-
-    trajpd['t_lag'][0] = 0
-    trajpd['lat_lag'][0] = 0
-    trajpd['lon_lag'][0] = 0
+    #trajpd['t_lag'][0] = 0
+    #trajpd['lat_lag'][0] = 0
+    #trajpd['lon_lag'][0] = 0
 
     trajpd['ll_magn'] = np.sqrt(trajpd['lon_lag'] ** 2 + trajpd['lat_lag'] ** 2)
 
     # Rows are now in form ['time','lat','lon','t_lag','lat_lag','v_lat','lon_lag','v_lon','ll_magn']
     # Add the angle of the boat at that time via tan^-1(v_lat/v_lon)
 
-    trajpd['angle'] = give_angle(trajpd['v_lat'], trajpd['v_lon'])
-
+    trajpd = trajpd.dropna()
+    # trajpd['angle'] = give_angle(trajpd['v_lat'], trajpd['v_lon'])
+    trajpd['angle'] = trajpd.apply(lambda x: give_angle(x.v_lat, x.v_lon), axis = 1)
+    print(trajpd.head())
     # Rows now have 'angle' term at the end
 
     trajpd_diff = trajpd.diff()
@@ -121,13 +123,13 @@ def compute_quants(trajpd):
     # now we will add the features we are interested in to a single pandas row
 
     # Directness Ratio calculations
-    direct_lon = trajpd['lon'][-1] - trajpd['lon'][0]
-    direct_lat = trajpd['lat'][-1] - trajpd['lat'][0]
+    direct_lon = trajpd['longitude'][-1] - trajpd['longitude'][0]
+    direct_lat = trajpd['latitude'][-1] - trajpd['latitude'][0]
 
     # 90+ Degree Turns
-    def turn_obtuse(z):
-        obtuse_map = map(lambda x: 1 if x > 90 else 0, z)
-        return reduce(lambda x, y: x + y, obtuse_map)
+    def turn_90(z):
+        map_90 = map(lambda x: 1 if x > 90 else 0, z)
+        return reduce(lambda x, y: x + y, map_90)
 
     # 30+ Degree Turns
     def turn_30(z):
@@ -135,58 +137,58 @@ def compute_quants(trajpd):
         return reduce(lambda x, y: x + y, map_30)
 
     outrow = pd.DataFrame(
-        columns=['MMSI', 'TIME', 'MINLON', 'MAXLON', 'MINLAT', 'MAXLAT', 'a_xx', 'a_xy', 'a_yy', 'a_x', 'a_y', 'a_1',
-                 'ell_center_x', 'ell_center_y', 'ell_major', 'ell_minor', 'b', 'm', 'direct_lon', 'direct_lat',
-                 'direct', 'lonpath', 'latpath', 'curve_len', 'maxspeed', 'meanspeed', 'obtuse', 'turn30'])
+        columns=['MINLON', 'MAXLON', 'MINLAT', 'MAXLAT', 'a_xx', 'a_xy', 'a_yy', 'a_x', 'a_y', 'a_1',
+                 'ell_center_x', 'ell_center_y', 'ell_major', 'ell_minor', 'slope', 'intercept', 
+                 'direct_lon', 'direct_lat', 'direct', 'lonpath', 'latpath', 'curve_len', 'maxspeed', 
+                 'meanspeed', 'turn90', 'turn30'])
 
-    outrow['MMSI'] = trajpd['MMSI']
-    outrow['TIME'] = trajpd['time_chunk']
-    outrow['MINLON'] = min(trajpd['lon'])
-    outrow['MAXLON'] = max(trajpd['lon'])
-    outrow['MINLAT'] = min(trajpd['lat'])
-    outrow['MAXLAT'] = max(trajpd['lat'])
+    outrow.loc[0, 'MINLON'] = min(trajpd['longitude'])
+    outrow.loc[0, 'MAXLON'] = max(trajpd['longitude'])
+    outrow.loc[0, 'MINLAT'] = min(trajpd['latitude'])
+    outrow.loc[0, 'MAXLAT'] = max(trajpd['latitude'])
 
     # Bounding Ellipse
-    f = fitEllipse(trajpd['lon'], trajpd['lat'])
+    f = fit_ellipse(trajpd['longitude'], trajpd['latitude'])
 
-    outrow['a_xx'] = f[0]
-    outrow['a_xy'] = f[1]
-    outrow['a_yy'] = f[2]
-    outrow['a_x'] = f[3]
-    outrow['a_y'] = f[4]
-    outrow['a_1'] = f[5]
+    outrow.loc[0, 'a_xx'] = f[0]
+    outrow.loc[0, 'a_xy'] = f[1]
+    outrow.loc[0, 'a_yy'] = f[2]
+    outrow.loc[0, 'a_x'] = f[3]
+    outrow.loc[0, 'a_y'] = f[4]
+    outrow.loc[0, 'a_1'] = f[5]
 
     c = ellipse_center(f)
 
-    outrow['ell_center_x'] = c[0]
-    outrow['ell_center_y'] = c[1]
+    outrow.loc[0, 'ell_center_x'] = c[0]
+    outrow.loc[0, 'ell_center_y'] = c[1]
 
     ab = ellipse_axis_length(f)
 
-    outrow['ell_major'] = max(ab)
-    outrow['ell_minor'] = min(ab)
+    outrow.loc[0, 'ell_major'] = max(ab)
+    outrow.loc[0, 'ell_minor'] = min(ab)
 
     # Line of Best Fit
-    y = np.polyfit(trajpd['lon'], trajpd['lat'], deg=1)
+    y = np.polyfit(trajpd['longitude'], trajpd['latitude'], deg=1)
 
-    outrow['b'] = y[0]
-    outrow['m'] = y[1]
+    outrow.loc[0, 'slope'] = y[0]
+    outrow.loc[0, 'intercept'] = y[1]
 
-    outrow['direct_lon'] = direct_lon
-    outrow['direct_lat'] = direct_lat
-    outrow['direct'] = np.sqrt(direct_lon ** 2 + direct_lat ** 2)
+    outrow.loc[0, 'direct_lon'] = direct_lon
+    outrow.loc[0, 'direct_lat'] = direct_lat
+    outrow.loc[0, 'direct'] = np.sqrt(direct_lon ** 2 + direct_lat ** 2)
 
-    outrow['lonpath'] = sum(abs(trajpd['lon_lag']))
-    outrow['latpath'] = sum(abs(trajpd['lat_lag']))
-    outrow['curve_len'] = sum(trajpd['ll_magn'])
+    outrow.loc[0, 'lonpath'] = sum(abs(trajpd['lon_lag']))
+    outrow.loc[0, 'latpath'] = sum(abs(trajpd['lat_lag']))
+    outrow.loc[0, 'curve_len'] = sum(trajpd['ll_magn'])
 
-    outrow['maxspeed'] = max(trajpd['speed'])
-    outrow['meanspeed'] = np.mean(trajpd['speed'])
+    outrow.loc[0, 'maxspeed'] = max(trajpd['speed'])
+    outrow.loc[0, 'meanspeed'] = np.mean(trajpd['speed'])
 
     # get angle cts
-    anglects = list(trajpd.agg({'angle_chg': ['obtuse', 'turn30']}))
+    #anglects = list(trajpd.agg({'angle_chg': ['turn_90', 'turn_30']}))
 
-    outrow['obtuse'] = anglects[0]
-    outrow['turn30'] = anglects[1]
+    #outrow['turn90'] = anglects[0]
+    #outrow['turn30'] = anglects[1]
 
+    print("outrow:", outrow)
     return outrow
