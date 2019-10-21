@@ -85,46 +85,45 @@ def compute_quants(df):
     # 30+ Degree Turns
 
     # First convert initial rows to a form that includes velocity
-    # import pdb; pdb.set_trace()
-    trajpd = df.sort_index()
-    trajpd_diff = trajpd.diff().dropna()
-    print(trajpd.head())
+    df = df.sort_index()
+    df_diff = df.diff().dropna()
+    print(df.head())
     # Set NA values on first step to 0, but set first time value to 1 for division (set back to 0 later for distributions)
-    # trajpd_diff.loc[0] = 0
-    # trajpd_diff['time_stamp'][0] = 1
-    trajpd['t_lag'] = trajpd_diff['time_stamp']
-    trajpd['lat_lag'] = trajpd_diff['latitude']
-    trajpd['v_lat'] = trajpd_diff['latitude'] / (trajpd_diff['time_stamp'].dt.total_seconds() )
-    trajpd['lon_lag'] = trajpd_diff['longitude']
-    trajpd['v_lon'] = trajpd_diff['longitude'] / (trajpd_diff['time_stamp'].dt.total_seconds() )
+    # df_diff.loc[0] = 0
+    # df_diff['time_stamp'][0] = 1
+    df['t_lag'] = df_diff['time_stamp']
+    df['lat_lag'] = df_diff['latitude']
+    df['v_lat'] = df_diff['latitude'] / (df_diff['time_stamp'].dt.total_seconds() )
+    df['lon_lag'] = df_diff['longitude']
+    df['v_lon'] = df_diff['longitude'] / (df_diff['time_stamp'].dt.total_seconds() )
 
-    #trajpd['t_lag'][0] = 0
-    #trajpd['lat_lag'][0] = 0
-    #trajpd['lon_lag'][0] = 0
+    #df['t_lag'][0] = 0
+    #df['lat_lag'][0] = 0
+    #df['lon_lag'][0] = 0
 
-    trajpd['ll_magn'] = np.sqrt(trajpd['lon_lag'] ** 2 + trajpd['lat_lag'] ** 2)
+    df['ll_magn'] = np.sqrt(df['lon_lag'] ** 2 + df['lat_lag'] ** 2)
 
     # Rows are now in form ['time','lat','lon','t_lag','lat_lag','v_lat','lon_lag','v_lon','ll_magn']
     # Add the angle of the boat at that time via tan^-1(v_lat/v_lon)
 
-    trajpd = trajpd.dropna()
-    # trajpd['angle'] = give_angle(trajpd['v_lat'], trajpd['v_lon'])
-    trajpd['angle'] = trajpd.apply(lambda x: give_angle(x.v_lat, x.v_lon), axis = 1)
-    print(trajpd.head())
+    df = df.dropna()
+    # df['angle'] = give_angle(df['v_lat'], df['v_lon'])
+    df['angle'] = df.apply(lambda x: give_angle(x.v_lat, x.v_lon), axis = 1)
+    print(df.head())
     # Rows now have 'angle' term at the end
 
-    trajpd_diff = trajpd.diff()
-    trajpd_diff.loc[0] = 0
+    df_diff = df.diff()
+    df_diff.loc[0] = 0
 
     # add angle changes (how big the turn was, in degrees) and speed to each row
-    trajpd['angle_chg'] = trajpd_diff['angle']
-    trajpd['speed'] = np.sqrt(trajpd['v_lat'] ** 2 + trajpd['v_lon'] ** 2)
+    df['angle_chg'] = df_diff['angle']
+    df['speed'] = np.sqrt(df['v_lat'] ** 2 + df['v_lon'] ** 2)
 
     # now we will add the features we are interested in to a single pandas row
 
     # Directness Ratio calculations
-    direct_lon = trajpd['longitude'][-1] - trajpd['longitude'][0]
-    direct_lat = trajpd['latitude'][-1] - trajpd['latitude'][0]
+    direct_lon = df['longitude'][-1] - df['longitude'][0]
+    direct_lat = df['latitude'][-1] - df['latitude'][0]
 
     # 90+ Degree Turns
     def turn_90(z):
@@ -142,13 +141,13 @@ def compute_quants(df):
                  'direct_lon', 'direct_lat', 'direct', 'lonpath', 'latpath', 'curve_len', 'maxspeed', 
                  'meanspeed', 'turn90', 'turn30'])
 
-    outrow.loc[0, 'MINLON'] = min(trajpd['longitude'])
-    outrow.loc[0, 'MAXLON'] = max(trajpd['longitude'])
-    outrow.loc[0, 'MINLAT'] = min(trajpd['latitude'])
-    outrow.loc[0, 'MAXLAT'] = max(trajpd['latitude'])
+    outrow.loc[0, 'MINLON'] = min(df['longitude'])
+    outrow.loc[0, 'MAXLON'] = max(df['longitude'])
+    outrow.loc[0, 'MINLAT'] = min(df['latitude'])
+    outrow.loc[0, 'MAXLAT'] = max(df['latitude'])
 
     # Bounding Ellipse
-    f = fit_ellipse(trajpd['longitude'], trajpd['latitude'])
+    f = fit_ellipse(df['longitude'], df['latitude'])
 
     outrow.loc[0, 'a_xx'] = f[0]
     outrow.loc[0, 'a_xy'] = f[1]
@@ -168,7 +167,7 @@ def compute_quants(df):
     outrow.loc[0, 'ell_minor'] = min(ab)
 
     # Line of Best Fit
-    y = np.polyfit(trajpd['longitude'], trajpd['latitude'], deg=1)
+    y = np.polyfit(df['longitude'], df['latitude'], deg=1)
 
     outrow.loc[0, 'slope'] = y[0]
     outrow.loc[0, 'intercept'] = y[1]
@@ -177,15 +176,15 @@ def compute_quants(df):
     outrow.loc[0, 'direct_lat'] = direct_lat
     outrow.loc[0, 'direct'] = np.sqrt(direct_lon ** 2 + direct_lat ** 2)
 
-    outrow.loc[0, 'lonpath'] = sum(abs(trajpd['lon_lag']))
-    outrow.loc[0, 'latpath'] = sum(abs(trajpd['lat_lag']))
-    outrow.loc[0, 'curve_len'] = sum(trajpd['ll_magn'])
+    outrow.loc[0, 'lonpath'] = sum(abs(df['lon_lag']))
+    outrow.loc[0, 'latpath'] = sum(abs(df['lat_lag']))
+    outrow.loc[0, 'curve_len'] = sum(df['ll_magn'])
 
-    outrow.loc[0, 'maxspeed'] = max(trajpd['speed'])
-    outrow.loc[0, 'meanspeed'] = np.mean(trajpd['speed'])
+    outrow.loc[0, 'maxspeed'] = max(df['speed'])
+    outrow.loc[0, 'meanspeed'] = np.mean(df['speed'])
 
     # get angle cts
-    #anglects = list(trajpd.agg({'angle_chg': ['turn_90', 'turn_30']}))
+    #anglects = list(df.agg({'angle_chg': ['turn_90', 'turn_30']}))
 
     #outrow['turn90'] = anglects[0]
     #outrow['turn30'] = anglects[1]
