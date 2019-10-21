@@ -136,7 +136,7 @@ def compute_quants(df):
         return reduce(lambda x, y: x + y, map_30)
 
     outrow = pd.DataFrame(
-        columns=['MINLON', 'MAXLON', 'MINLAT', 'MAXLAT', 'a_xx', 'a_xy', 'a_yy', 'a_x', 'a_y', 'a_1',
+        columns=['minlon', 'maxlon', 'minlat', 'maxlat', 'a_xx', 'a_xy', 'a_yy', 'a_x', 'a_y', 'a_1',
                  'ell_center_x', 'ell_center_y', 'ell_major', 'ell_minor', 'slope', 'intercept', 
                  'direct_lon', 'direct_lat', 'direct', 'lonpath', 'latpath', 'curve_len', 'maxspeed', 
                  'meanspeed', 'turn90', 'turn30'])
