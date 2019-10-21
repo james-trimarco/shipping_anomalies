@@ -140,6 +140,7 @@ def compute_quants(df):
                  'ell_center_x', 'ell_center_y', 'ell_major', 'ell_minor', 'slope', 'intercept', 
                  'direct_lon', 'direct_lat', 'direct', 'lonpath', 'latpath', 'curve_len', 'maxspeed', 
                  'meanspeed', 'turn90', 'turn30'])
+    outrow = outrow.astype(np.float)
 
     outrow.loc[0, 'MINLON'] = min(df['longitude'])
     outrow.loc[0, 'MAXLON'] = max(df['longitude'])
@@ -183,6 +184,7 @@ def compute_quants(df):
     outrow.loc[0, 'maxspeed'] = max(df['speed'])
     outrow.loc[0, 'meanspeed'] = np.mean(df['speed'])
 
+    outrow = outrow.apply(lambda x: np.real(x))
     # get angle cts
     #anglects = list(df.agg({'angle_chg': ['turn_90', 'turn_30']}))
 
