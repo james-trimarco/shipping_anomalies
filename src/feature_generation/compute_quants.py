@@ -109,7 +109,7 @@ def compute_quants(df):
     # Add the angle of the boat at that time via tan^-1(v_lat/v_lon)
     
     #TODO: decide on .dropna()
-    df = df.dropna()i
+    df = df.dropna()
 
     #TODO: attempt to accomplish reduce syntax on give_angle for good form
     # df['angle'] = give_angle(df['v_lat'], df['v_lon'])
