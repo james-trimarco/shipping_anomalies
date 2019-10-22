@@ -88,7 +88,6 @@ def compute_quants(df):
     df = df.sort_index()
     #TODO: decide on .dropna()
     df_diff = df.diff().dropna()
-    print(df.head())
     # Set NA values on first step to 0, but set first time value to 1 for division (set back to 0 later for distributions)
     #TODO: pd.Timedelta(0),etc.
     # df_diff.loc[0] = 0
@@ -115,7 +114,6 @@ def compute_quants(df):
     #TODO: attempt to accomplish reduce syntax on give_angle for good form
     # df['angle'] = give_angle(df['v_lat'], df['v_lon'])
     df['angle'] = df.apply(lambda x: give_angle(x.v_lat, x.v_lon), axis = 1)
-    print(df.head())
     # Rows now have 'angle' term at the end
     
     #TODO: rename df_diff to express that this is only for angle differencing
@@ -151,30 +149,35 @@ def compute_quants(df):
                  'meanspeed', 'turn90', 'turn30'])
     outrow = outrow.astype(np.float)
 
-    outrow.loc[0, 'MINLON'] = min(df['longitude'])
-    outrow.loc[0, 'MAXLON'] = max(df['longitude'])
-    outrow.loc[0, 'MINLAT'] = min(df['latitude'])
-    outrow.loc[0, 'MAXLAT'] = max(df['latitude'])
+    outrow.loc[0, 'minlon'] = min(df['longitude'])
+    outrow.loc[0, 'maxlon'] = max(df['longitude'])
+    outrow.loc[0, 'minlat'] = min(df['latitude'])
+    outrow.loc[0, 'maxlat'] = max(df['latitude'])
 
     # Bounding Ellipse
-    f = fit_ellipse(df['longitude'], df['latitude'])
+    try: 
+        f = fit_ellipse(df['longitude'], df['latitude'])
 
-    outrow.loc[0, 'a_xx'] = f[0]
-    outrow.loc[0, 'a_xy'] = f[1]
-    outrow.loc[0, 'a_yy'] = f[2]
-    outrow.loc[0, 'a_x'] = f[3]
-    outrow.loc[0, 'a_y'] = f[4]
-    outrow.loc[0, 'a_1'] = f[5]
+        outrow.loc[0, 'a_xx'] = f[0]
+        outrow.loc[0, 'a_xy'] = f[1]
+        outrow.loc[0, 'a_yy'] = f[2]
+        outrow.loc[0, 'a_x'] = f[3]
+        outrow.loc[0, 'a_y'] = f[4]
+        outrow.loc[0, 'a_1'] = f[5]
 
-    c = ellipse_center(f)
+        c = ellipse_center(f)
 
-    outrow.loc[0, 'ell_center_x'] = c[0]
-    outrow.loc[0, 'ell_center_y'] = c[1]
+        outrow.loc[0, 'ell_center_x'] = c[0]
+        outrow.loc[0, 'ell_center_y'] = c[1]
 
-    ab = ellipse_axis_length(f)
-
-    outrow.loc[0, 'ell_major'] = max(ab)
-    outrow.loc[0, 'ell_minor'] = min(ab)
+        ab = ellipse_axis_length(f)
+        print(ab)
+        outrow.loc[0, 'ell_major'] = max(ab)
+        outrow.loc[0, 'ell_minor'] = min(ab)
+     
+    except np.linalg.LinAlgError as err:
+        print("Singular matrix \n")
+        print(df[['longitude', 'latitude']].head()) 
 
     # Line of Best Fit
     y = np.polyfit(df['longitude'], df['latitude'], deg=1)
@@ -200,5 +203,4 @@ def compute_quants(df):
     #outrow['turn90'] = anglects[0]
     #outrow['turn30'] = anglects[1]
 
-    print("outrow:", outrow)
     return outrow

@@ -76,12 +76,15 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
 
     ### CREATE QUANT FEATURES
     for name, group in df_group:
-        quants = compute_quants(group[['time_stamp', 'longitude', 'latitude']])
-        quants['traj_id'] = str(name[1]) + '-' + str(name[0].date())
-        quants['day'] = name[0].date()
-        quants['mmsi'] = name[1]
-        quants.to_sql('quants', engine, schema='features', if_exists='append',
+        try:
+            quants = compute_quants(group[['time_stamp', 'longitude', 'latitude']])
+            quants['traj_id'] = str(name[1]) + '-' + str(name[0].date())
+            quants['day'] = name[0].date()
+            quants['mmsi'] = name[1]
+            quants.to_sql('quants', engine, schema='features', if_exists='append',
                       index=False)
+        except: 
+            print("An error occurred computing quants.")
 
     ### CREATE TABLE OF IMAGES
 
