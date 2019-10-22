@@ -86,9 +86,11 @@ def compute_quants(df):
 
     # First convert initial rows to a form that includes velocity
     df = df.sort_index()
+    #TODO: decide on .dropna()
     df_diff = df.diff().dropna()
     print(df.head())
     # Set NA values on first step to 0, but set first time value to 1 for division (set back to 0 later for distributions)
+    #TODO: pd.Timedelta(0),etc.
     # df_diff.loc[0] = 0
     # df_diff['time_stamp'][0] = 1
     df['t_lag'] = df_diff['time_stamp']
@@ -96,7 +98,8 @@ def compute_quants(df):
     df['v_lat'] = df_diff['latitude'] / (df_diff['time_stamp'].dt.total_seconds() )
     df['lon_lag'] = df_diff['longitude']
     df['v_lon'] = df_diff['longitude'] / (df_diff['time_stamp'].dt.total_seconds() )
-
+    
+    #TODO: consider pd.Timedelta(0),etc.
     #df['t_lag'][0] = 0
     #df['lat_lag'][0] = 0
     #df['lon_lag'][0] = 0
@@ -105,17 +108,23 @@ def compute_quants(df):
 
     # Rows are now in form ['time','lat','lon','t_lag','lat_lag','v_lat','lon_lag','v_lon','ll_magn']
     # Add the angle of the boat at that time via tan^-1(v_lat/v_lon)
+    
+    #TODO: decide on .dropna()
+    df = df.dropna()i
 
-    df = df.dropna()
+    #TODO: attempt to accomplish reduce syntax on give_angle for good form
     # df['angle'] = give_angle(df['v_lat'], df['v_lon'])
     df['angle'] = df.apply(lambda x: give_angle(x.v_lat, x.v_lon), axis = 1)
     print(df.head())
     # Rows now have 'angle' term at the end
-
+    
+    #TODO: rename df_diff to express that this is only for angle differencing
     df_diff = df.diff()
     df_diff.loc[0] = 0
-
+    
+    #TODO: consider moving addition of linear speed to somewhere it makes more sense
     # add angle changes (how big the turn was, in degrees) and speed to each row
+    #TODO: add angular speeds as new field in df same way as before
     df['angle_chg'] = df_diff['angle']
     df['speed'] = np.sqrt(df['v_lat'] ** 2 + df['v_lon'] ** 2)
 
