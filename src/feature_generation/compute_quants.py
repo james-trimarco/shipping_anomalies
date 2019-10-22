@@ -153,7 +153,8 @@ def compute_quants(df):
     outrow.loc[0, 'maxlon'] = max(df['longitude'])
     outrow.loc[0, 'minlat'] = min(df['latitude'])
     outrow.loc[0, 'maxlat'] = max(df['latitude'])
-
+    
+    #TODO: there is work to be done here...debug
     # Bounding Ellipse
     try: 
         f = fit_ellipse(df['longitude'], df['latitude'])
