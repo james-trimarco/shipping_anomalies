@@ -49,6 +49,24 @@ INSERT INTO cleaned.ais
 ;
 
 
+DROP TABLE if exists cleaned.vessels;
+CREATE TABLE cleaned.ais (
+    AIS_Vessel_type VARCHAR,
+    Breadth         FLOAT,
+    Call_sign       VARCHAR,
+    Deadweight      FLOAT,
+    Flag            VARCHAR,
+    Gross_tonnage   FLOAT,
+    Home_port       VARCHAR,
+    IMO             VARCHAR,
+    Length          FLOAT,
+    MMSI            VARCHAR,
+    Name            VARCHAR,
+    Photo           VARCHAR,
+    Vessel_type     VARCHAR,
+    Year_built      INT
+);
+
 -- create temporary id to aid in deletion of duplicates
 ALTER TABLE cleaned.ais
     ADD COLUMN temp_id SERIAL;
