@@ -4,7 +4,7 @@
 
 import os
 import settings
-from utils import create_connection_from_dict, execute_sql, remove_dir
+from utils import create_connection_from_dict, execute_sql, remove_dir, copy_csv_to_db
 from etl.load_raw import load_csv, load_iuu_list
 import argparse
 
@@ -56,7 +56,9 @@ def run():
 
     ## ---- UPLOAD TABLES ----
 
-    # print("Processing IUU List")
+    print("Processing scraped vessels table.")
+    copy_csv_to_db(os.path.join(data_dir, 'updated_boats.csv'), 'raw.vessels', engine)
+    print("Processing IUU list.")
     load_iuu_list(os.path.join(data_dir, 'IUUList-20190902.txt'), engine)
     
 
