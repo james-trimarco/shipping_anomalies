@@ -95,7 +95,7 @@ CREATE TABLE raw.vessels (
     Gross_tonnage   VARCHAR,
     Home_port       VARCHAR,
     IMO             VARCHAR,
-    Length_         VARCHAR,
+    Length         VARCHAR,
     MMSI            VARCHAR,
     Name            VARCHAR,
     Photo           VARCHAR,

@@ -59,8 +59,7 @@ def run():
     print("Processing scraped vessels table.")
     copy_csv_to_db(os.path.join(data_dir, 'updated_boats.csv'), 'raw.vessels', engine)
     print("Processing IUU list.")
-    load_iuu_list(os.path.join(data_dir, 'IUUList-20190902.txt'), engine)
-    
+    # load_iuu_list(os.path.join(data_dir, 'IUUList-20190902.txt'), engine)
 
     ## ---- UPLOAD SHAPEFILES ----
 
