@@ -1,29 +1,28 @@
 import settings
 from utils import create_connection_from_dict, execute_sql
-import findspark
 
-findspark.init()
-import pyspark
+# import findspark
+# findspark.init()
+# import pyspark
 import pandas as pd
 import numpy as np
 from feature_generation.create_images import vessel_img, img_reduce
+from feature_generation.compute_quants import *
 import time
 
 # Configure Spark
-conf = pyspark.SparkConf()
-conf.set('spark.local.dir', '/Akamai/tmp_spark/')
-conf.set('spark.executor.memory', '5g')
-conf.set('spark.driver.memory', '20g')
-conf.set('spark.worker.dir', '/Akamai')
+# conf = pyspark.SparkConf()
+# conf.set('spark.local.dir', '/Akamai/tmp_spark/')
+# conf.set('spark.executor.memory', '5g')
+# conf.set('spark.driver.memory', '20g')
+# conf.set('spark.worker.dir', '/Akamai')
 # conf.set("spark.sql.shuffle.partitions", "2500")
 
 # Tell Spark to use all the local clusters
-sc = pyspark.SparkContext('local[*]', 'airports', conf)
+# sc = pyspark.SparkContext('local[*]', 'airports', conf)
 
 # Tell spark to create a session
-from pyspark.sql import SparkSession
-
-
+# from pyspark.sql import SparkSession
 # sess = SparkSession.builder.config(conf=conf).getOrCreate()
 # sess = SparkSession(sc)
 
@@ -72,13 +71,26 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     window_lon = traj_lon.mean() + 2 * traj_lon.std()
     window_lat = traj_lat.mean() + 2 * traj_lat.std()
     print("window size : ", round(window_lon, 2), ' ', round(window_lat, 2))
-    # df_group.apply(lambda x: print(x.count()))
+
+    ### CREATE QUANT FEATURES
+    for name, group in df_group:
+        try:
+            quants = compute_quants(group[['time_stamp', 'longitude', 'latitude']])
+            quants['traj_id'] = str(name[1]) + '-' + str(name[0].date())
+            quants['day'] = name[0].date()
+            quants['mmsi'] = name[1]
+            quants.to_sql('quants', engine, schema='features', if_exists='append',
+                      index=False)
+        except: 
+            print("An error occurred computing quants.")
+
+    ### CREATE TABLE OF IMAGES
+
     width = 64  # TODO: pass this in dynamically
     height = 64
     i = 0
     rows_list = []
     for name, group in df_group:
-        # import pdb; pdb.set_trace()
         row_dict = {'traj_id': str(name[1]) + '-' + str(name[0].date()),
                     'day': name[0].date(),
                     'mmsi': name[1],
