@@ -103,4 +103,5 @@ def load_iuu_list(filename, engine):
     long = long.dropna(how='all', subset=['Reason', 'Date']).reset_index()
     long = long.drop('index', axis=1)
     print(long.head())
+    print(long.columns)
     long.to_sql('IUU_list', engine, 'raw', if_exists='append')

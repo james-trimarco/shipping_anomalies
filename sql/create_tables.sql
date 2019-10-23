@@ -61,7 +61,6 @@ CREATE TABLE raw.sanctuaries (
 DROP TABLE if exists raw.iuu_list;
 CREATE TABLE raw.iuu_list (
     Violation       VARCHAR,
-    Flag            VARCHAR,
     IMO             VARCHAR,
     IRCS            VARCHAR,
     OperatorName    VARCHAR,
@@ -79,9 +78,9 @@ CREATE TABLE raw.iuu_list (
     MMSI            VARCHAR,
     DWT             VARCHAR,
     VesselType      VARCHAR,
-    Length_         VARCHAR,
+    Length          VARCHAR,
     Reason          VARCHAR,
-    Date_           VARCHAR
+    Date            VARCHAR
 );
 
 
