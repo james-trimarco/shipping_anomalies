@@ -48,25 +48,6 @@ INSERT INTO cleaned.ais
         FROM raw.ais
 ;
 
-
-DROP TABLE if exists cleaned.vessels;
-CREATE TABLE cleaned.ais (
-    AIS_Vessel_type VARCHAR,
-    Breadth         FLOAT,
-    Call_sign       VARCHAR,
-    Deadweight      FLOAT,
-    Flag            VARCHAR,
-    Gross_tonnage   FLOAT,
-    Home_port       VARCHAR,
-    IMO             VARCHAR,
-    Length          FLOAT,
-    MMSI            VARCHAR,
-    Name            VARCHAR,
-    Photo           VARCHAR,
-    Vessel_type     VARCHAR,
-    Year_built      INT
-);
-
 -- create temporary id to aid in deletion of duplicates
 ALTER TABLE cleaned.ais
     ADD COLUMN temp_id SERIAL;
@@ -90,9 +71,6 @@ WHERE
      AND a.time_stamp = b.time_stamp;
 
 
-select current_timestamp;
-
-
 -- drop the temp id and make a real one
 ALTER TABLE cleaned.ais
     DROP COLUMN temp_id,
@@ -102,6 +80,41 @@ ALTER TABLE cleaned.ais
 -- create spatial index
 CREATE INDEX ais_spatial_idx ON cleaned.ais USING gist(geom);
 
+DROP TABLE if exists cleaned.vessels;
+CREATE TABLE cleaned.vessels (
+    AIS_Vessel_type VARCHAR,
+    Breadth         FLOAT,
+    Call_sign       VARCHAR,
+    Deadweight      FLOAT,
+    Flag            VARCHAR,
+    Gross_tonnage   FLOAT,
+    Home_port       VARCHAR,
+    IMO             VARCHAR,
+    Length          FLOAT,
+    MMSI            VARCHAR,
+    Name            VARCHAR,
+    Photo           VARCHAR,
+    Vessel_type     VARCHAR,
+    Year_built      INT
+);
+
+INSERT INTO cleaned.vessels
+    SELECT
+        AIS_Vessel_type,
+        Breadth::float,
+        Call_sign,
+        Deadweight::float,
+        Flag,
+        Gross_tonnage::float,
+        Home_port,
+        IMO,
+        Length::float,
+        MMSI,
+        Name,
+        Photo,
+        Vessel_type,
+        Year_built::int
+);
 
 -- import shapefiles of marine sanctuaries from https://www.protectedplanet.net/
 DROP TABLE if exists cleaned.sanctuaries;
