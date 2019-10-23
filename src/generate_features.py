@@ -1,7 +1,7 @@
 import settings
 from utils import create_connection_from_dict, execute_sql
+
 # import findspark
-#
 # findspark.init()
 # import pyspark
 import pandas as pd
@@ -22,9 +22,7 @@ import time
 # sc = pyspark.SparkContext('local[*]', 'airports', conf)
 
 # Tell spark to create a session
-#from pyspark.sql import SparkSession
-
-
+# from pyspark.sql import SparkSession
 # sess = SparkSession.builder.config(conf=conf).getOrCreate()
 # sess = SparkSession(sc)
 
@@ -106,8 +104,6 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     print(img_df.head(20))
     img_df.to_sql('images', engine, schema='features', if_exists='append',
                   index=False)
-
-
     end = time.time()
     print(end - start)
 
