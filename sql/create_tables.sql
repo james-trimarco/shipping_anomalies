@@ -79,8 +79,27 @@ CREATE TABLE raw.iuu_list (
     MMSI            VARCHAR,
     DWT             VARCHAR,
     VesselType      VARCHAR,
-    Length          VARCHAR,
+    Length_         VARCHAR,
     Reason          VARCHAR,
-    Date            VARCHAR
+    Date_           VARCHAR
 );
 
+
+-- import iuu list
+DROP TABLE if exists raw.vessels;
+CREATE TABLE raw.vessels (
+    AIS_Vessel_type VARCHAR,
+    Breadth         VARCHAR,
+    Call_sign       VARCHAR,
+    Deadweight      VARCHAR,
+    Flag            VARCHAR,
+    Gross_tonnage   VARCHAR,
+    Home_port       VARCHAR,
+    IMO             VARCHAR,
+    Length_         VARCHAR,
+    MMSI            VARCHAR,
+    Name            VARCHAR,
+    Photo           VARCHAR,
+    Vessel_type     VARCHAR,
+    Year_built      VARCHAR
+);
