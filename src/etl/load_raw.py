@@ -57,6 +57,12 @@ def load_shp(DATA_DIR, dir_dict, credentials_dict):
 
 
 def load_iuu_list(filename, engine):
+    """
+    :param filename:
+    :param engine:
+    :return:
+        None
+    """
     iuu_list_orig = Path.cwd().parent.parent.joinpath('aux_data').joinpath(filename)
     pd_test = pd.read_csv(iuu_list_orig, delimiter="\t", encoding="ISO-8859-1")
 
@@ -96,4 +102,4 @@ def load_iuu_list(filename, engine):
     long = long.dropna(how='all', subset=['Reason', 'Date']).reset_index()
     long = long.drop('index', axis=1)
 
-    copy_csv_to_db(long, iuu_list, engine, header=True, sep=',')
+    long.to_sql('IUU_list', engine, 'raw', if_exists='append')
