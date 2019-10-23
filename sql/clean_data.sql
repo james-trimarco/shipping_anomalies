@@ -114,6 +114,7 @@ INSERT INTO cleaned.vessels
         Photo,
         Vessel_type,
         Year_built::int
+        FROM raw.vessels
 );
 
 -- import shapefiles of marine sanctuaries from https://www.protectedplanet.net/
