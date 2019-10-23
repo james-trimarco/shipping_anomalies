@@ -13,7 +13,7 @@ def run():
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
     # Get data to process from postgres
-    img_df = execute_sql('select * from features.images', engine, read_file=False, return_df=True)
+    img_df = execute_sql('select * from features.images;', engine, read_file=False, return_df=True)
 
     for i, row in img_df.iterrows():
         img = [float(pix) for pix in  row['img'].replace('{', '').replace('}', '').split(',')]

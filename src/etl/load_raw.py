@@ -65,8 +65,7 @@ def load_iuu_list(filename, engine):
     :return:
         None
     """
-    iuu_list_orig = Path.cwd().parent.parent.joinpath('aux_data').joinpath(filename)
-    pd_test = pd.read_csv(iuu_list_orig, delimiter="\t", encoding="ISO-8859-1")
+    pd_test = pd.read_csv(filename, delimiter="\t", encoding="ISO-8859-1")
 
     pd_test.rename(columns={'IOTC': 'Date_IOTC',
                             'ICCAT': 'Date_ICCAT',
@@ -103,5 +102,5 @@ def load_iuu_list(filename, engine):
 
     long = long.dropna(how='all', subset=['Reason', 'Date']).reset_index()
     long = long.drop('index', axis=1)
-
+    print(long.head())
     long.to_sql('IUU_list', engine, 'raw', if_exists='append')
