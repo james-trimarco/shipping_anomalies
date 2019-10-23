@@ -35,7 +35,7 @@ def run():
     base_dir = settings.get_base_dir()
     sql_dir = base_dir.joinpath('sql')
     data_dir = settings.get_data_dir()
-    filtered_dir = data_dir.joinpath('ais_filtered')
+    filtered_dir = data_dir.joinpath('ais_deduped')
 
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
@@ -73,8 +73,11 @@ def run():
             #  this is where we upload csvs from the database
             #  the intention is that we sometimes do this with previously parsed csvs
             print(f"Uploading csv files to database from {filtered_subdir.name}.")
-            load_csv(filtered_subdir, engine, 'raw.ais')
-
+            try:
+                load_csv(filtered_subdir, engine, 'raw.ais', sep='\t', quote='\b')
+            except IsADirectoryError:
+                #raise 
+                print('Found directory, not file')
         print(f"Finished converted json from {filtered_subdir.name}")
 
     ## ---- ClEAN DATA ----

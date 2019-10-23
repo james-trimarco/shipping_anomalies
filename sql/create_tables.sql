@@ -56,6 +56,7 @@ CREATE TABLE raw.sanctuaries (
     iso3            VARCHAR
 );
 
+
 -- import iuu list
 DROP TABLE if exists raw.iuu_list;
 CREATE TABLE raw.iuu_list (
@@ -82,3 +83,4 @@ CREATE TABLE raw.iuu_list (
     Reason          VARCHAR,
     Date            VARCHAR
 );
+
