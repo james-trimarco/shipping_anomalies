@@ -57,7 +57,7 @@ def run():
     ## ---- UPLOAD TABLES ----
 
     # print("Processing IUU List")
-    load_iuu_list(os.path.join(data_dir, 'IUUList-20190902.txt'), engine)
+    load_iuu_list(os.path.join(data_dir, 'IUUList-20190902.csv'), engine)
     
 
     ## ---- UPLOAD SHAPEFILES ----
