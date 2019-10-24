@@ -22,20 +22,13 @@ from functools import reduce
 # The 'num_turns_90' gives the number of turns that are greater than 90 degrees, and 'turn30' gives the number of turns that are greater than 30 degrees.
 
 
-def give_angle(v_y, v_x):
-    if v_x > 0:
-        return np.arctan(v_y / v_x) * 180 / np.pi
-    elif v_x < 0:
-        return 180 + np.arctan(v_y / v_x) * 180 / np.pi
-    else:
-        if v_y == 0:
-            return 0
-        else:
-            if v_y > 0:
-                return 90
-            else:
-                return 270
-
+def get_angle(mydf):
+    mydf['angle'].loc[(mydf.v_lon > 0)] = np.arctan(mydf.v_lat / mydf.v_lon) * 180 / np.pi
+    mydf['angle'].loc[(v_x < 0)] = 180 + np.arctan(mydf.v_lat / mydf.v_lon) * 180 / np.pi
+    mydf['angle'].loc[(mydf.v_lon == 0)] = 270
+    mydf['angle'].loc[(mydf.v_lon == 0) & (mydf.v_lat == 0)] = 0
+    mydf['angle'].loc[(mydf.v_lon == 0) & (mydf.v_lat > 0)] = 90
+    return mydf
 
 def fit_ellipse(x, y):
     x = x[:, np.newaxis]
@@ -50,14 +43,12 @@ def fit_ellipse(x, y):
     a = V[:, n]
     return a
 
-
 def ellipse_center(a):
     b, c, d, f, g, a = a[1] / 2, a[2], a[3] / 2, a[4] / 2, a[5], a[0]
     num = b * b - a * c
     x0 = (c * d - b * f) / num
     y0 = (a * f - b * d) / num
     return x0, y0
-
 
 def ellipse_axis_length(a):
     b, c, d, f, g, a = a[1] / 2, a[2], a[3] / 2, a[4] / 2, a[5], a[0]
@@ -67,7 +58,6 @@ def ellipse_axis_length(a):
     res1 = np.sqrt(up / down1)
     res2 = np.sqrt(up / down2)
     return res1, res2
-
 
 def compute_quants(df):
     # Must write a function that creates one pandas Series for each input with 5 to 10 numerical features
@@ -89,19 +79,21 @@ def compute_quants(df):
     #TODO: decide on .dropna()
     df_diff = df.diff().dropna()
     # Set NA values on first step to 0, but set first time value to 1 for division (set back to 0 later for distributions)
+    #TODO: check that this TODO is complete (left as is to focus on other debugs for now)
     #TODO: pd.Timedelta(0),etc.
-    # df_diff.loc[0] = 0
-    # df_diff['time_stamp'][0] = 1
+    #df_diff.loc[0] = pd.Timedelta(0)
     df['t_lag'] = df_diff['time_stamp']
     df['lat_lag'] = df_diff['latitude']
     df['v_lat'] = df_diff['latitude'] / (df_diff['time_stamp'].dt.total_seconds() )
     df['lon_lag'] = df_diff['longitude']
     df['v_lon'] = df_diff['longitude'] / (df_diff['time_stamp'].dt.total_seconds() )
+    df['speed'] = np.sqrt(df['v_lat'] ** 2 + df['v_lon'] ** 2)
     
+    #TODO: check that this TODO is complete
     #TODO: consider pd.Timedelta(0),etc.
-    #df['t_lag'][0] = 0
-    #df['lat_lag'][0] = 0
-    #df['lon_lag'][0] = 0
+    df['t_lag'].loc[0] = pd.Timedelta(0)
+    df['lat_lag'].loc[0] = 0
+    df['lon_lag'].loc[0] = 0
 
     df['ll_magn'] = np.sqrt(df['lon_lag'] ** 2 + df['lat_lag'] ** 2)
 
@@ -110,27 +102,29 @@ def compute_quants(df):
     
     #TODO: decide on .dropna()
     df = df.dropna()
-
+    
+    #TODO: check that this TODO is complete
     #TODO: attempt to accomplish reduce syntax on give_angle for good form
     # df['angle'] = give_angle(df['v_lat'], df['v_lon'])
-    df['angle'] = df.apply(lambda x: give_angle(x.v_lat, x.v_lon), axis = 1)
+    #df['angle'] = df.apply(lambda x: give_angle(x.v_lat, x.v_lon), axis = 1)
+    df = get_angle(df)
     # Rows now have 'angle' term at the end
     
+    #TODO: check that this TODO is complete
     #TODO: rename df_diff to express that this is only for angle differencing
-    df_diff = df.diff()
-    df_diff.loc[0] = 0
+    angle_diff = df.angle.diff()
+    angle_diff.iloc[0] = 0
     
     #TODO: consider moving addition of linear speed to somewhere it makes more sense
     # add angle changes (how big the turn was, in degrees) and speed to each row
     #TODO: add angular speeds as new field in df same way as before
-    df['angle_chg'] = df_diff['angle']
-    df['speed'] = np.sqrt(df['v_lat'] ** 2 + df['v_lon'] ** 2)
+    df['angle_chg'] = angle_diff['angle']
 
     # now we will add the features we are interested in to a single pandas row
 
     # Directness Ratio calculations
-    direct_lon = df['longitude'][-1] - df['longitude'][0]
-    direct_lat = df['latitude'][-1] - df['latitude'][0]
+    direct_lon = df['longitude'].iloc[-1] - df['longitude'].iloc[0]
+    direct_lat = df['latitude'].iloc[-1] - df['latitude'].iloc[0]
 
     # 90+ Degree Turns
     def turn_90(z):
@@ -199,9 +193,9 @@ def compute_quants(df):
 
     outrow = outrow.apply(lambda x: np.real(x))
     # get angle cts
-    #anglects = list(df.agg({'angle_chg': ['turn_90', 'turn_30']}))
+    anglects = list(df.agg({'angle_chg': ['turn_90', 'turn_30']}))
 
-    #outrow['turn90'] = anglects[0]
-    #outrow['turn30'] = anglects[1]
+    outrow['turn90'] = anglects[0]
+    outrow['turn30'] = anglects[1]
 
     return outrow
