@@ -113,11 +113,12 @@ INSERT INTO cleaned.vessels
         Name,
         Photo,
         Vessel_type,
-        Year_built::int
+        ROUND(Year_built::float) AS int
         FROM raw.vessels
-);
+;
 
 -- import shapefiles of marine sanctuaries from https://www.protectedplanet.net/
+/*
 DROP TABLE if exists cleaned.sanctuaries;
 CREATE TABLE cleaned.sanctuaries (
     geom            GEOMETRY(MULTIPOLYGON, 4326),  -- This departs from raw rules, but eases import
@@ -187,3 +188,4 @@ INSERT INTO cleaned.sanctuaries
     FROM raw.sanctuaries
 ;
 CREATE INDEX sanct_spatial_idx ON cleaned.sanctuaries USING gist(geom);
+*/
