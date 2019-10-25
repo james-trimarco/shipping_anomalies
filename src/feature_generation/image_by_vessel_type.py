@@ -63,7 +63,7 @@ def out_images(out_dir, traj1):
     return
 
 
-def add_class(traj, class_col, seq_id, date):
+def save_matplotlib_img(traj, class_col, seq_id, date):
     """
     Adds poshness
     Generates trajectories images and saves by class
@@ -93,7 +93,7 @@ def get_traj(df, ID, min_length, seq_id, date):
     # Building Trajectories
     MIN_LENGTH = min_length  # Threshold to remove stationary points
     t_start = datetime.now()
-    # trajectories = []
+    trajectories = []
     traj_count = 0
     for key, values in df.groupby([ID]):
         seq_id += 1
@@ -108,16 +108,17 @@ def get_traj(df, ID, min_length, seq_id, date):
             if len(split_trajectory) > 1:
                 for i in split_trajectory:
                     if i.get_length() < MIN_LENGTH:
+                        # eliminate trajectories with too few pings
                         continue
                     else:
                         seq_id += 1
                         # trajectories.append(i)
                         traj_count += 1
-                        trajectory = add_class(i, 'AIS Vessel Type', seq_id, date)
+                        trajectory = save_matplotlib_img(i, 'AIS Vessel Type', seq_id, date)
             else:
                 # trajectories.append(trajectory)
                 traj_count += 1
-                trajectory = add_class(trajectory, 'AIS Vessel Type', seq_id, date)
+                trajectory = save_matplotlib_img(trajectory, 'AIS Vessel Type', seq_id, date)
 
     return print(
         "{} created {} trajectories in {}".format(str(date), traj_count, datetime.now() - t_start))  # trajectories
