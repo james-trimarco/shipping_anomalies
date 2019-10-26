@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS eda.fishing_segments;
-    CREATE TABLE eda.fishing_segments AS (
+DROP TABLE IF EXISTS features.fishing_segments;
+    CREATE TABLE features.fishing_segments AS (
         WITH fishing_segments AS (
             SELECT v.mmsi,
                    v.ais_vessel_type AS vessel_type,
@@ -24,11 +24,11 @@ DROP TABLE IF EXISTS eda.fishing_segments;
         AND a.time_stamp::DATE = f.time_stamp::DATE
         WHERE ST_Length(ST_LongestLine(f.circle, f.circle)::geography) / 1000 > 5.0 -- Removes short trajectories from analysis
         );
-create index fishing_pings_idx on eda.fishing_segments(mmsi);
+create index fishing_pings_idx on features.fishing_segments(mmsi);
 
 
-DROP TABLE IF EXISTS eda.nonfishing_segments;
-    CREATE TABLE eda.nonfishing_segments AS (
+DROP TABLE IF EXISTS features.nonfishing_segments;
+    CREATE TABLE features.nonfishing_segments AS (
         WITH nonfishing_segments AS (
             SELECT v.mmsi,
                    v.ais_vessel_type AS vessel_type,
@@ -53,30 +53,30 @@ DROP TABLE IF EXISTS eda.nonfishing_segments;
         AND a.time_stamp::DATE = f.time_stamp::DATE
         WHERE ST_Length(ST_LongestLine(f.circle, f.circle)::geography) / 1000 > 5.0
         );
-create index nonfishing_pings_idx on eda.nonfishing_segments(mmsi);
+create index nonfishing_pings_idx on features.nonfishing_segments(mmsi);
 
 
-DROP TABLE IF EXISTS eda.cnn_sample;
-CREATE TABLE eda.cnn_sample AS (
+DROP TABLE IF EXISTS features.cnn_sample;
+CREATE TABLE features.cnn_sample AS (
     SELECT mmsi,
     time_stamp,
     latitude,
     longitude,
     vessel_type
-    FROM eda.fishing_segments
+    FROM features.fishing_segments
 UNION
     SELECT mmsi,
     time_stamp,
     latitude,
     longitude,
     vessel_type
-    FROM eda.nonfishing_segments
+    FROM features.nonfishing_segments
 );
 
 
 /*
 with segments as (select count(*)
-from eda.fishing_segments
+from features.fishing_segments
 group by mmsi, time_stamp::date)
 
 select count(*) from segments;
