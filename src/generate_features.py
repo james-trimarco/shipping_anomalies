@@ -21,7 +21,10 @@ def run():
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
+    # Create a sql table with complete trajectories
+    execute_sql(os.path.join(sql_dir, 'clean_data.sql'), engine, read_file=True)
     # Get data to process from postgres
+
     df = execute_sql("""
                      WITH sample as (
 SELECT mmsi,

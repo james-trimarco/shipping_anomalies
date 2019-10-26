@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS eda.fishing_segments;
             GROUP BY v.mmsi,
                      v.ais_vessel_type,
                      a.time_stamp::DATE
-            HAVING count(*) > 50 -- Removes trajectories with few pings analysis
+            HAVING count(*) > {min_pings} -- Removes trajectories with few pings analysis
             ) SELECT a.mmsi,
                      a.time_stamp,
                      a.latitude,
@@ -41,7 +41,7 @@ DROP TABLE IF EXISTS eda.nonfishing_segments;
             GROUP BY v.mmsi,
                      v.ais_vessel_type,
                      a.time_stamp::DATE
-            HAVING count(*) > 50
+            HAVING count(*) > {min_pings}
             ) SELECT a.mmsi,
                      a.time_stamp,
                      a.latitude,

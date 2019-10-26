@@ -139,8 +139,8 @@ for i in list(boats['AIS Vessel Type'].unique()):
     (curr_dir / 'trajectories' / i).mkdir(parents=True, exist_ok=True)
 
 # prepping input
-cnn = df_to_geodf(cnn, 'time_stamp', 'longitude', 'latitude')
-cnn_boats = cnn.merge(boats, left_on='mmsi', right_on='MMSI')[['mmsi', 'AIS Vessel Type', 'time_stamp', 'geometry']]
+# cnn = df_to_geodf(cnn, 'time_stamp', 'longitude', 'latitude')
+# cnn_boats = cnn.merge(boats, left_on='mmsi', right_on='MMSI')[['mmsi', 'AIS Vessel Type', 'time_stamp', 'geometry']]
 
 cnn_boats['t'] = pd.to_datetime(cnn_boats['time_stamp'], format='%m/%d/%y %H:%M')
 cnn_boats = cnn_boats.set_index('t')
