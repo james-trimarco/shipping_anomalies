@@ -3,7 +3,7 @@ from utils import create_connection_from_dict, execute_sql
 import pandas as pd
 import numpy as np
 import movingpandas as mp
-from feature_generation.create_images import vessel_img, img_reduce
+from feature_generation.create_images import df_to_geodf, save_matplotlib_img
 from feature_generation.create_samples import create_cnn_sample
 from feature_generation.compute_quants import *
 import time
@@ -48,17 +48,16 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     df['latitude'] = pd.to_numeric(df['latitude'])
     # Set df index
     df.index = df['time_stamp']
-    # print(df.info())
+    df_geo = df_to_geodf(df)
+    print(df_geo.info())
     # Filter by date and mmsi
-    df_group = df.groupby([pd.Grouper(freq='D'), 'mmsi'])
+    df_group = df_geo.groupby([pd.Grouper(freq='D'), 'mmsi'])
     # Split images at the gap
     for name, group in df_group:
         trajectory = mp.Trajectory(name, group)
         print("splitting trajectory...")
         split_trajectory = trajectory.split_by_observation_gap(timedelta(minutes=30))
         print(split_trajectory.head())
-
-
 
     # Create standard window size for images
     traj_lon = df_group['longitude'].agg(np.ptp)
