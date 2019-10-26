@@ -12,15 +12,18 @@ def df_to_geodf(df):
     """
     Takes in pd dataframe converts to geodf
     """
-    geometry = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
-    crs = {'init': 'epsg:4326'}  # Coordinate reference system : WGS84
-    df = gpd.GeoDataFrame(df, crs=crs, geometry=geometry)
-    return df
+    if len(df.index) < 2:
+        return
+    else:
+        geometry = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
+        crs = {'init': 'epsg:4326'}  # Coordinate reference system : WGS84
+        df = gpd.GeoDataFrame(df, crs=crs, geometry=geometry)
+        return df
 
 
 def new_box(bbox_tuple):
     """
-    Takes in trajectory boundry box of form (LAT1, LON1, LAT2, LON2),
+    Takes in trajectory boundary box of form (LAT1, LON1, LAT2, LON2),
     outputs cords for bounding trajectory in a square.
     """
     # TUPLE HAS FORM (LAT1, LON1, LAT2, LON2)

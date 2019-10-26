@@ -3,6 +3,8 @@ from utils import create_connection_from_dict, execute_sql
 import pandas as pd
 import numpy as np
 import movingpandas as mp
+from datetime import timedelta
+
 from feature_generation.create_images import df_to_geodf, save_matplotlib_img
 from feature_generation.create_samples import create_cnn_sample
 from feature_generation.compute_quants import *
