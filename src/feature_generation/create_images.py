@@ -120,24 +120,24 @@ def get_traj(df, ID, min_length, seq_id, date):
 # cnn = pd.read_csv('cnn_sample_3.csv')
 # boats = pd.read_csv('updated_boats.csv')
 
-boats['AIS Vessel Type'] = boats['AIS Vessel Type'].fillna("Unspecified")  # nans to unspecified
+#boats['AIS Vessel Type'] = boats['AIS Vessel Type'].fillna("Unspecified")  # nans to unspecified
 
 # create directories
-curr_dir = pathlib.Path.cwd()
-(curr_dir / 'trajectories').mkdir(parents=True, exist_ok=True)
-for i in list(boats['AIS Vessel Type'].unique()):
-    (curr_dir / 'trajectories' / i).mkdir(parents=True, exist_ok=True)
-
-# prepping input
-# cnn =  (cnn, 'time_stamp', 'longitude', 'latitude')
-# cnn_boats = cnn.merge(boats, left_on='mmsi', right_on='MMSI')[['mmsi', 'AIS Vessel Type', 'time_stamp', 'geometry']]
-
-cnn_boats['t'] = pd.to_datetime(cnn_boats['time_stamp'], format='%m/%d/%y %H:%M')
-cnn_boats = cnn_boats.set_index('t')
-
-# generating trajectory images
-for i in range(1, cnn_boats.index.days_in_month[0] + 1):  # loop by days in month
-    seq_id = 0
-    cnn_boats_in = cnn_boats[cnn_boats.index.day == i]
-    date = cnn_boats_in.index.date[0]
-    get_traj(df=cnn_boats_in, ID='mmsi', seq_id=0, date=date)
+# curr_dir = pathlib.Path.cwd()
+# (curr_dir / 'trajectories').mkdir(parents=True, exist_ok=True)
+# for i in list(boats['AIS Vessel Type'].unique()):
+#     (curr_dir / 'trajectories' / i).mkdir(parents=True, exist_ok=True)
+#
+# # prepping input
+# # cnn =  (cnn, 'time_stamp', 'longitude', 'latitude')
+# # cnn_boats = cnn.merge(boats, left_on='mmsi', right_on='MMSI')[['mmsi', 'AIS Vessel Type', 'time_stamp', 'geometry']]
+#
+# cnn_boats['t'] = pd.to_datetime(cnn_boats['time_stamp'], format='%m/%d/%y %H:%M')
+# cnn_boats = cnn_boats.set_index('t')
+#
+# # generating trajectory images
+# for i in range(1, cnn_boats.index.days_in_month[0] + 1):  # loop by days in month
+#     seq_id = 0
+#     cnn_boats_in = cnn_boats[cnn_boats.index.day == i]
+#     date = cnn_boats_in.index.date[0]
+#     get_traj(df=cnn_boats_in, ID='mmsi', seq_id=0, date=date)
