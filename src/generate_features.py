@@ -1,30 +1,11 @@
 import settings
 from utils import create_connection_from_dict, execute_sql
 
-# import findspark
-# findspark.init()
-# import pyspark
 import pandas as pd
 import numpy as np
 from feature_generation.create_images import vessel_img, img_reduce
 from feature_generation.compute_quants import *
 import time
-
-# Configure Spark
-# conf = pyspark.SparkConf()
-# conf.set('spark.local.dir', '/Akamai/tmp_spark/')
-# conf.set('spark.executor.memory', '5g')
-# conf.set('spark.driver.memory', '20g')
-# conf.set('spark.worker.dir', '/Akamai')
-# conf.set("spark.sql.shuffle.partitions", "2500")
-
-# Tell Spark to use all the local clusters
-# sc = pyspark.SparkContext('local[*]', 'airports', conf)
-
-# Tell spark to create a session
-# from pyspark.sql import SparkSession
-# sess = SparkSession.builder.config(conf=conf).getOrCreate()
-# sess = SparkSession(sc)
 
 
 def run():
