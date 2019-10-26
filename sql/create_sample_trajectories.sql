@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS eda.fishing_segments;
             GROUP BY v.mmsi,
                      v.ais_vessel_type,
                      a.time_stamp::DATE
-            HAVING count(*) > 50
+            HAVING count(*) > 50 -- Removes trajectories with few pings analysis
             ) SELECT a.mmsi,
                      a.time_stamp,
                      a.latitude,
@@ -22,7 +22,7 @@ DROP TABLE IF EXISTS eda.fishing_segments;
              FROM cleaned.ais a
         INNER JOIN fishing_segments f ON a.mmsi = f.mmsi
         AND a.time_stamp::DATE = f.time_stamp::DATE
-        WHERE ST_Length(ST_LongestLine(f.circle, f.circle)::geography) / 1000 > 5.0
+        WHERE ST_Length(ST_LongestLine(f.circle, f.circle)::geography) / 1000 > 5.0 -- Removes short trajectories from analysis
         );
 create index fishing_pings_idx on eda.fishing_segments(mmsi);
 
@@ -69,8 +69,9 @@ UNION
     time_stamp,
     latitude,
     longitude,
+    vessel_type
     FROM eda.nonfishing_segments
-    );
+);
 
 
 /*
@@ -79,10 +80,6 @@ from eda.fishing_segments
 group by mmsi, time_stamp::date)
 
 select count(*) from segments;
-
-\COPY eda.cnn_sample_3 TO '/Akamai/james_temp/cnn_sample_3.csv' CSV HEADER
-
-scp  james@10.10.11.63:/Akamai/james_temp/cnn_sample_3.csv /Users/james/Documents/NCDS/Semester_3/pds/shipping_anomalies/aux_data/
 
 drop table if exists features.images;
 create table features.images(
