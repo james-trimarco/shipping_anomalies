@@ -1,6 +1,6 @@
 from utils import execute_sql
 
-def create_cnn_sample(min_pings):
+def create_cnn_sample(sql_dir, engine, min_pings):
     params = {}
     # Set all parameters for sql file
     params['min_pings'] = int(min_pings)

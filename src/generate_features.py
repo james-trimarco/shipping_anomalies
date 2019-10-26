@@ -4,6 +4,7 @@ from utils import create_connection_from_dict, execute_sql
 import pandas as pd
 import numpy as np
 from feature_generation.create_images import vessel_img, img_reduce
+from feature_generation.create_samples import create_cnn_sample
 from feature_generation.compute_quants import *
 import time
 
@@ -17,14 +18,15 @@ def run():
     settings.load()
     # Get PostgreSQL database credentials
     psql_credentials = settings.get_psql()
+    base_dir = settings.get_base_dir()
+    sql_dir = base_dir.joinpath('sql')
     #  print('Running with credentials: ', psql_credentials)
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
     # Create a sql table with complete trajectories
-    execute_sql(os.path.join(sql_dir, 'clean_data.sql'), engine, read_file=True)
+    create_cnn_sample(sql_dir, engine, min_pings=50)
     # Get data to process from postgres
-
     df = execute_sql("""
                      WITH sample as (
 SELECT mmsi,
