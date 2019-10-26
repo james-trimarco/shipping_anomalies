@@ -1,8 +1,8 @@
 import settings
 from utils import create_connection_from_dict, execute_sql
-
 import pandas as pd
 import numpy as np
+import movingpandas as mp
 from feature_generation.create_images import vessel_img, img_reduce
 from feature_generation.create_samples import create_cnn_sample
 from feature_generation.compute_quants import *
@@ -20,7 +20,6 @@ def run():
     psql_credentials = settings.get_psql()
     base_dir = settings.get_base_dir()
     sql_dir = base_dir.joinpath('sql')
-    #  print('Running with credentials: ', psql_credentials)
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
@@ -31,19 +30,19 @@ def run():
                      WITH sample as (
 SELECT mmsi,
        time_stamp::DATE
-    FROM eda.CNN_SAMPLE_3 
+    FROM features.cnn_sample 
     GROUP BY mmsi,
              time_stamp::DATE
             HAVING count(*) > 50
             LIMIT 500
-    ) SELECT c.* FROM eda.CNN_SAMPLE_3 c 
+    ) SELECT c.* FROM features.cnn_sample c 
 INNER JOIN sample s
 ON c.mmsi = s.mmsi
 AND c.time_stamp::DATE = s.time_stamp::DATE;
                      """,
                      engine, read_file=False,
                      return_df=True)
-    # Set data type of time_stamp column
+    # Set data types of several key columns
     df['time_stamp'] = pd.to_datetime(df['time_stamp'])
     df['longitude'] = pd.to_numeric(df['longitude'])
     df['latitude'] = pd.to_numeric(df['latitude'])
@@ -52,6 +51,16 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     # print(df.info())
     # Filter by date and mmsi
     df_group = df.groupby([pd.Grouper(freq='D'), 'mmsi'])
+    # Split images at the gap
+    for name, group in df_group:
+        trajectory = mp.Trajectory(name, group)
+        print("splitting trajectory...")
+        split_trajectory = trajectory.split_by_observation_gap(timedelta(minutes=30))
+        print(split_trajectory.head())
+
+
+
+    # Create standard window size for images
     traj_lon = df_group['longitude'].agg(np.ptp)
     traj_lat = df_group['latitude'].agg(np.ptp)
     window_lon = traj_lon.mean() + 2 * traj_lon.std()
