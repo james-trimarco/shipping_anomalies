@@ -11,7 +11,7 @@ from feature_generation.compute_quants import *
 import time
 
 
-def run():
+def run(min_pings=50):
     """
     TODO: write docstring
     """
@@ -26,7 +26,7 @@ def run():
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
     # Create a sql table with complete trajectories
-    create_cnn_sample(sql_dir, engine, min_pings=50)
+    # create_cnn_sample(sql_dir, engine, min_pings=min_pings)
     # Get data to process from postgres
     df = execute_sql("""
                      WITH sample as (
@@ -60,6 +60,7 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
         # Split the trajectory at the gap
         split_trajectories = list(trajectory.split_by_observation_gap(timedelta(minutes=30)))
 
+        ### CREATE TRAJECTORY IDs
         for split_index, trajectory in enumerate(split_trajectories):
             # create a universal trajectory ID:
             # format is: mmsi-date-split_index
@@ -67,15 +68,20 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
 
         ### CREATE QUANT FEATURES
         for trajectory in split_trajectories:
-            import pdb; pdb.set_trace()
-            try:
-                quants = compute_quants(trajectory.df[['time_stamp', 'longitude', 'latitude']])
-                quants['traj_id'] = trajectory['traj_id']
-                quants.to_sql('quants', engine, schema='features', if_exists='append',
-                              index=False)
-            except:
-                print("An error occurred computing quants.")
 
+            if len(trajectory.df) < min_pings:
+                continue
+            else:
+                try:
+                    quants = compute_quants(trajectory.df[['time_stamp', 'longitude', 'latitude']])
+                    quants['traj_id'] = trajectory.df['traj_id']
+                    quants.to_sql('quants', engine, schema='features', if_exists='append',
+                                  index=False)
+                except:
+                    print("An error occurred computing quants.")
+
+        ### WRITE IMAGES TO DISK
+        
 
     # Create standard window size for images
     traj_lon = df_group['longitude'].agg(np.ptp)
@@ -111,4 +117,4 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
 
 
 if __name__ == '__main__':
-    run()
+    run(min_pings=50)
