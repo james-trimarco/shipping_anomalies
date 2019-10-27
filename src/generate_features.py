@@ -54,12 +54,28 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     print(df_geo.info())
     # Filter by date and mmsi
     df_group = df_geo.groupby([pd.Grouper(freq='D'), 'mmsi'])
-    # Split images at the gap
+    # Loop through the grouped dataframes
     for name, group in df_group:
         trajectory = mp.Trajectory(name, group)
-        print("splitting trajectory...")
-        split_trajectory = trajectory.split_by_observation_gap(timedelta(minutes=30))
-        print(split_trajectory.head())
+        # Split the trajectory at the gap
+        split_trajectories = list(trajectory.split_by_observation_gap(timedelta(minutes=30)))
+
+        for split_index, trajectory in enumerate(split_trajectories):
+            # create a universal trajectory ID:
+            # format is: mmsi-date-split_index
+            trajectory.df['traj_id'] = str(name[1]) + '-' + str(name[0].date()) + '-' + str(split_index)
+
+        ### CREATE QUANT FEATURES
+        for trajectory in split_trajectories:
+            import pdb; pdb.set_trace()
+            try:
+                quants = compute_quants(trajectory.df[['time_stamp', 'longitude', 'latitude']])
+                quants['traj_id'] = trajectory['traj_id']
+                quants.to_sql('quants', engine, schema='features', if_exists='append',
+                              index=False)
+            except:
+                print("An error occurred computing quants.")
+
 
     # Create standard window size for images
     traj_lon = df_group['longitude'].agg(np.ptp)
@@ -68,17 +84,7 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     window_lat = traj_lat.mean() + 2 * traj_lat.std()
     print("window size : ", round(window_lon, 2), ' ', round(window_lat, 2))
 
-    ### CREATE QUANT FEATURES
-    for name, group in df_group:
-        try:
-            quants = compute_quants(group[['time_stamp', 'longitude', 'latitude']])
-            quants['traj_id'] = str(name[1]) + '-' + str(name[0].date())
-            quants['day'] = name[0].date()
-            quants['mmsi'] = name[1]
-            quants.to_sql('quants', engine, schema='features', if_exists='append',
-                      index=False)
-        except: 
-            print("An error occurred computing quants.")
+
 
     ### CREATE TABLE OF IMAGES
 
