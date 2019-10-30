@@ -56,25 +56,29 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     df_group = df_geo.groupby([pd.Grouper(freq='D'), 'mmsi'])
     # Loop through the grouped dataframes
     for name, group in df_group:
+        if len(group) < min_pings:
+            continue
         trajectory = mp.Trajectory(name, group)
         # Split the trajectory at the gap
         split_trajectories = list(trajectory.split_by_observation_gap(timedelta(minutes=30)))
 
         ### CREATE TRAJECTORY IDs
         for split_index, trajectory in enumerate(split_trajectories):
+            print(split_index)
             # create a universal trajectory ID:
             # format is: mmsi-date-split_index
             trajectory.df['traj_id'] = str(name[1]) + '-' + str(name[0].date()) + '-' + str(split_index)
 
         ### CREATE QUANT FEATURES
-        for trajectory in split_trajectories:
-
-            if len(trajectory.df) < min_pings:
+        for split in split_trajectories:
+            # import pdb; pdb.set_trace()
+            if len(split.df) < min_pings:
                 continue
             else:
                 try:
-                    quants = compute_quants(trajectory.df[['time_stamp', 'longitude', 'latitude']])
-                    quants['traj_id'] = trajectory.df['traj_id']
+                    # import pdb; pdb.set_trace()
+                    quants = compute_quants(split.df[['time_stamp', 'longitude', 'latitude']])
+                    quants['traj_id'] = str(split.df['traj_id'])
                     quants.to_sql('quants', engine, schema='features', if_exists='append',
                                   index=False)
                 except:
