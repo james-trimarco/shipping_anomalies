@@ -36,7 +36,6 @@ SELECT mmsi,
     GROUP BY mmsi,
              time_stamp::DATE
             HAVING count(*) > 50
-            LIMIT 500
     ) SELECT c.* FROM features.cnn_sample c 
 INNER JOIN sample s
 ON c.mmsi = s.mmsi
@@ -51,7 +50,6 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     # Set df index
     df.index = df['time_stamp']
     df_geo = df_to_geodf(df)
-    print(df_geo.info())
     # Filter by date and mmsi
     df_group = df_geo.groupby([pd.Grouper(freq='D'), 'mmsi'])
     # Loop through the grouped dataframes
@@ -64,14 +62,12 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
 
         ### CREATE TRAJECTORY IDs
         for split_index, trajectory in enumerate(split_trajectories):
-            print(split_index)
             # create a universal trajectory ID:
             # format is: mmsi-date-split_index
             trajectory.df['traj_id'] = str(name[1]) + '-' + str(name[0].date()) + '-' + str(split_index)
 
         ### CREATE QUANT FEATURES
         for split in split_trajectories:
-            # import pdb; pdb.set_trace()
             if len(split.df) < min_pings:
                 continue
             else:
