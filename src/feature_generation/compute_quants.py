@@ -102,6 +102,7 @@ def compute_quants(df):
     df['v_lat'] = df['lat_lag']/df['t_lag']
     df['v_lon'] = df['lon_lag']/df['t_lag']
     df['speed'] = np.sqrt(df['v_lat'] ** 2 + df['v_lon'] ** 2)
+    df['ll_maglag'] = np.sqrt(df['lat_lag'] ** 2 + df['lon_lag'] ** 2)
 
     # Rows are now in form ['time','lat','lon','t_lag','lat_lag','v_lat','lon_lag','v_lon','ll_magn','speed','count']
     # Add the angle of the boat at that time via tan^-1(v_lat/v_lon)
@@ -141,7 +142,7 @@ def compute_quants(df):
         columns=['minlon', 'maxlon', 'minlat', 'maxlat', 'a_xx', 'a_xy', 'a_yy', 'a_x', 'a_y', 'a_1',
                  'ell_center_x', 'ell_center_y', 'ell_major', 'ell_minor', 'slope', 'intercept', 'count',
                  'direct_lon', 'direct_lat', 'direct', 'lonpath', 'latpath', 'curve_len', 'maxspeed', 
-                 'meanspeed', 'turn90', 'turn30'])
+                 'meanspeed', 't_total', 't_lag_mean', 't_lag_sd', 't_lag_max', 'turn90', 'turn30'])
     outrow = outrow.astype(np.float)
     
     outrow['minlon'] = [min(df['longitude'])]
@@ -189,6 +190,16 @@ def compute_quants(df):
     outrow['lonpath'] = [sum(abs(df['lon_lag']))]
     outrow['latpath'] = [sum(abs(df['lat_lag']))]
     
+    outrow['curve_len'] = [sum(abs(df['ll_maglag']))]
+    
+    #Quant distributions
+    outrow['maxspeed'] = [max(df['speed'])]
+    outrow['meanspeed'] = [np.mean(df['speed'])]
+
+    outrow['t_total'] = [sum(df['t_lag'])]
+    outrow['t_lag_mean'] = [np.mean(df['t_lag'])]
+    outrow['t_lag_sd'] = [np.std(df['t_lag'])]
+    outrow['t_lag_max'] = [max(df['t_lag'])]
     #coerce types to real
     outrow = outrow.apply(lambda x: [np.real(y) for y in x])
     
