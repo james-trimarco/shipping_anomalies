@@ -94,8 +94,8 @@ def compute_quants(df):
     #TODO: pd.Timedelta(0),etc.
     df_diff.loc[(df_diff.index==df_diff.index[0]),'longitude'] = np.float(0)
     df_diff.loc[(df_diff.index==df_diff.index[0]),'latitude'] = np.float(0)
-    df_diff.loc[(df_diff.index==df_diff.index[0]),'time_stamp'] = pd.Timedelta(1)
-    df['t_lag'] = df_diff['time_stamp'].apply(lambda x:x.microseconds)
+    df_diff.loc[(df_diff.index==df_diff.index[0]),'time_stamp'] = pd.Timedelta('1 second')
+    df['t_lag'] = df_diff['time_stamp'].apply(lambda x:x.total_seconds())
     df['lat_lag'] = df_diff['latitude']
     df['lon_lag'] = df_diff['longitude']
     df['v_lat'] = df['lat_lag']/df['t_lag']
@@ -108,6 +108,7 @@ def compute_quants(df):
     #TODO: check that this TODO is complete
     #TODO: attempt to accomplish reduce syntax on give_angle for good form
     df = give_angle(df)
+
     # Rows now have 'angle' term at the end
     
     #TODO: check that this TODO is complete
