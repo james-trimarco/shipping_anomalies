@@ -28,6 +28,7 @@ def run(min_pings=50):
     # Create a sql table with complete trajectories
     # create_cnn_sample(sql_dir, engine, min_pings=min_pings)
     # Get data to process from postgres
+    execute_sql('drop table features.quants;', engine, read_file=False)
     df = execute_sql("""
                      WITH sample as (
 SELECT mmsi,
@@ -74,7 +75,7 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
                 try:
                     # import pdb; pdb.set_trace()
                     quants = compute_quants(split.df[['time_stamp', 'longitude', 'latitude']])
-                    quants['traj_id'] = str(split.df['traj_id'])
+                    quants['traj_id'] = str(split.df['traj_id'].iloc[0])
                     quants.to_sql('quants', engine, schema='features', if_exists='append',
                                   index=False)
                 except:

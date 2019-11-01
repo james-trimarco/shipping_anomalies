@@ -23,7 +23,7 @@ from functools import reduce
 
 
 def give_angle(mydf):
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     mydf.loc[(mydf.v_lon>0),'angle'] = np.arctan(mydf.v_lat/mydf.v_lon) * np.float(180) / np.pi
     mydf.loc[(mydf.v_lon<0),'angle'] = np.float(180) + np.arctan(mydf.v_lat/mydf.v_lon) * np.float(180) / np.pi
     mydf.loc[(mydf.v_lon==0),'angle'] = np.float(270)
