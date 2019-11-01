@@ -169,7 +169,7 @@ def copy_csv_to_db(src_file, dst_table, engine, header=True, sep=',', quote='"')
             head = 'HEADER'
         else:
             head = ''
-        cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' QUOTE '{quote}' {head} CSV", f)
+        cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' QUOTE '{quote}' {head} CSV NULL as 'NULL", f)
     print(f"{src_file} copied to {dst_table}")
     conn.commit()
     conn.close()
