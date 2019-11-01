@@ -30,17 +30,19 @@ def run(min_pings=50):
     # Get data to process from postgres
     execute_sql('drop table features.quants;', engine, read_file=False)
     df = execute_sql("""
-                     WITH sample as (
-SELECT mmsi,
-       time_stamp::DATE
-    FROM features.cnn_sample 
-    GROUP BY mmsi,
-             time_stamp::DATE
-            HAVING count(*) > 50
-    ) SELECT c.* FROM features.cnn_sample c 
-INNER JOIN sample s
-ON c.mmsi = s.mmsi
-AND c.time_stamp::DATE = s.time_stamp::DATE;
+                    WITH sample
+                    AS (
+                        SELECT mmsi,
+                               time_stamp::DATE
+                        FROM features.cnn_sample
+                        GROUP BY mmsi,
+                                 time_stamp::DATE
+                        HAVING count(*) > 50
+                        )
+                    SELECT c.*
+                    FROM features.cnn_sample c
+                    INNER JOIN sample s ON c.mmsi = s.mmsi
+                        AND c.time_stamp::DATE = s.time_stamp::DATE;
                      """,
                      engine, read_file=False,
                      return_df=True)
@@ -76,8 +78,8 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
                     # import pdb; pdb.set_trace()
                     quants = compute_quants(split.df[['time_stamp', 'longitude', 'latitude']])
                     quants['traj_id'] = str(split.df['traj_id'].iloc[0])
-                    quants.to_sql('quants', engine, schema='features', if_exists='append',
-                                  index=False)
+                    quants.to_sql('quants', engine, schema='features',
+                                  if_exists='append', index=False)
                 except:
                     print("An error occurred computing quants.")
 
@@ -91,28 +93,26 @@ AND c.time_stamp::DATE = s.time_stamp::DATE;
     window_lat = traj_lat.mean() + 2 * traj_lat.std()
     print("window size : ", round(window_lon, 2), ' ', round(window_lat, 2))
 
-
-
     ### CREATE TABLE OF IMAGES
 
-    width = 64  # TODO: pass this in dynamically
-    height = 64
-    i = 0
-    rows_list = []
-    for name, group in df_group:
-        row_dict = {'traj_id': str(name[1]) + '-' + str(name[0].date()),
-                    'day': name[0].date(),
-                    'mmsi': name[1],
-                    'img': vessel_img(group, window_lon, window_lat),
-                    'width': width,
-                    'height': height}
-        rows_list.append(row_dict)
-        i += 1
-    img_df = pd.DataFrame(rows_list, columns=['traj_id', 'mmsi', 'day', 'img'])
-    print(f"created {i} trajectories.")
-    print(img_df.head(20))
-    img_df.to_sql('images', engine, schema='features', if_exists='append',
-                  index=False)
+    # width = 64  # TODO: pass this in dynamically
+    # height = 64
+    # i = 0
+    # rows_list = []
+    # for name, group in df_group:
+    #     row_dict = {'traj_id': str(name[1]) + '-' + str(name[0].date()),
+    #                 'day': name[0].date(),
+    #                 'mmsi': name[1],
+    #                 'img': vessel_img(group, window_lon, window_lat),
+    #                 'width': width,
+    #                 'height': height}
+    #     rows_list.append(row_dict)
+    #     i += 1
+    # img_df = pd.DataFrame(rows_list, columns=['traj_id', 'mmsi', 'day', 'img'])
+    # print(f"created {i} trajectories.")
+    # print(img_df.head(20))
+    # img_df.to_sql('images', engine, schema='features', if_exists='append',
+    #               index=False)
     end = time.time()
     print(end - start)
 
