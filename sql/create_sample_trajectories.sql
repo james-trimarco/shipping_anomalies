@@ -37,7 +37,7 @@ DROP TABLE IF EXISTS features.nonfishing_segments;
             FROM cleaned.ais a
             INNER JOIN cleaned.vessels v
             ON a.mmsi = v.mmsi
-            WHERE v.ais_vessel_type IN ('Cargo', 'Sailing Vessel')
+            WHERE v.ais_vessel_type != 'Fishing'
             GROUP BY v.mmsi,
                      v.ais_vessel_type,
                      a.time_stamp::DATE
