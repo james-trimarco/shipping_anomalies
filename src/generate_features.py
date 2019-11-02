@@ -22,22 +22,23 @@ def run(min_pings=50):
     psql_credentials = settings.get_psql()
     base_dir = settings.get_base_dir()
     sql_dir = base_dir.joinpath('sql')
+    data_dir = settings.get_data_dir()
 
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
     # Create a sql table with complete trajectories
     # create_cnn_sample(sql_dir, engine, min_pings=min_pings)
     # Get data to process from postgres
-    execute_sql('drop table features.quants;', engine, read_file=False)
+    execute_sql('drop table if exists features.quants;', engine, read_file=False)
     df = execute_sql("""
                     WITH sample
                     AS (
                         SELECT mmsi,
-                               time_stamp::DATE
+                               time_stamp::DATE,
                                vessel_type
                         FROM features.cnn_sample
                         GROUP BY mmsi,
-                                 time_stamp::DATE
+                                 time_stamp::DATE,
                                  vessel_type
                         HAVING count(*) > 50
                         )
@@ -71,7 +72,7 @@ def run(min_pings=50):
             # format is: mmsi-date-split_index
             trajectory.df['traj_id'] = str(name[1]) + '-' + str(name[0].date()) + '-' + str(split_index)
 
-        ### CREATE QUANT FEATURES
+        ### CREATE QUANT FEATURES AND WRITE IMAGES TO DISK
         for split in split_trajectories:
             if len(split.df) < min_pings:
                 continue
@@ -83,10 +84,12 @@ def run(min_pings=50):
                     quants['vessel_type'] = str(split.df['vessel_type'].iloc[0])
                     quants.to_sql('quants', engine, schema='features',
                                   if_exists='append', index=False)
+                    save_matplotlib_img(split, data_dir)
                 except:
                     print("An error occurred computing quants.")
 
         ### WRITE IMAGES TO DISK
+
         
 
     # Create standard window size for images
