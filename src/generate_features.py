@@ -1,5 +1,5 @@
 import settings
-from utils import create_connection_from_dict, execute_sql
+from utils import create_connection_from_dict, execute_sql, remove_dir
 import pandas as pd
 import numpy as np
 import movingpandas as mp
@@ -30,6 +30,8 @@ def run(min_pings=50):
     # create_cnn_sample(sql_dir, engine, min_pings=min_pings)
     # Get data to process from postgres
     execute_sql('drop table if exists features.quants;', engine, read_file=False)
+    if (data_dir / 'trajectories').is_dir():
+        remove_dir(data_dir / 'trajectories')
     df = execute_sql("""
                     WITH sample
                     AS (

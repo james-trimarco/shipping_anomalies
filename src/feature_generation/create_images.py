@@ -50,13 +50,15 @@ def out_images(out_path, traj1):
     """
     Converts trajectory to image and saves to out_dir
     """
-    cord = new_box(traj1.get_bbox())
-    ax = traj1.plot(column='speed', with_basemap=False, vmin=0, vmax=20, cmap="Greys_r")
+    # import pdb; pdb.set_trace()
+    # traj1.add_speed()
+    coord = new_box(traj1.get_bbox())
+    ax = traj1.plot(with_basemap=False, vmin=0, vmax=20, cmap="Greys_r")
     ax.set_axis_off()
-    ax.set_ylim([cord[1], cord[3]])
-    ax.set_xlim([cord[0], cord[2]])
+    ax.set_ylim([coord[1], coord[3]])
+    ax.set_xlim([coord[0], coord[2]])
     fig = ax.get_figure()
-    fig.savefig(out_path, bbox_inches='tight', dpi=42.7, pad_inches=0)
+    fig.savefig(out_path, bbox_inches='tight', dpi=72, pad_inches=0)
     fig.clf()
     plt.close()
     return
@@ -75,8 +77,11 @@ def save_matplotlib_img(split, data_dir):
     vessel_type = str(df['vessel_type'].iloc[0])
     traj_id = str(df['traj_id'].iloc[0])
     # TODO: implement different directories for different experiements
-    out_path = data_dir / f'trajectories/{vessel_type}/{traj_id}.png'
-    out_images(out_path, traj)
+    print(f"printing image {traj_id} in directory: {vessel_type}")
+    out_dir = data_dir / f'trajectories/{vessel_type}'
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / traj_id
+    out_images(out_path, split)
     return
 
 
