@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 def df_to_geodf(df):
     """
-    Takes in pd dataframe converts to geodf
+    Takes in pd dataframe converts to geopandas dataframe with projection = 4326.
     """
     if len(df.index) < 2:
         return
@@ -46,7 +46,7 @@ def new_box(bbox_tuple):
         return bbox_tuple
 
 
-def out_images(out_dir, traj1):
+def out_images(out_path, traj1):
     """
     Converts trajectory to image and saves to out_dir
     """
@@ -55,66 +55,60 @@ def out_images(out_dir, traj1):
     ax.set_axis_off()
     ax.set_ylim([cord[1], cord[3]])
     ax.set_xlim([cord[0], cord[2]])
-    # ax.set_facecolor("black")
     fig = ax.get_figure()
-    fig.savefig(out_dir, bbox_inches='tight', dpi=42.7, pad_inches=0)
+    fig.savefig(out_path, bbox_inches='tight', dpi=42.7, pad_inches=0)
     fig.clf()
     plt.close()
     return
 
 
-def save_matplotlib_img(traj, class_col, seq_id, date):
+def save_matplotlib_img(split, data_dir):
     """
-    Adds poshness
-    Generates trajectories images and saves by class
+    Finds the correct directory and filename for a split trajectory and requests
+    writing of a png.
+    :param split:
+        A movingpandas trajectory object, with an embedded dataframe attribute
+    :return:
+        None
     """
-    # classes     = traj.df[class_col].unique()
-    class_value = traj.df[class_col].iloc[0]
-    mmsi_value = traj.df['mmsi'].iloc[0]
-    out_dir1 = f'trajectories/{class_value}/{mmsi_value}_{date.year}__{date.month}_{date.day}_{seq_id}.png'
-    out_images(out_dir1, traj)
-
-    # if 'Fishing' in classes:
-    #    out_dir1 = f'trajectories/{class_value}/{mmsi_value}_{date.year}__{date.month}_{date.day}_{seq_id}.png'
-    #    out_images(out_dir1,traj)
-    #    return
-    # else:
-    #    out_dir1 = f'trajectories/{class_value}/{mmsi_value}_{day}_{seq_id}.png'
-    #   out_images(out_dir1,traj)
-    #    return
+    df = split.df
+    vessel_type = str(df['vessel_type'].iloc[0])
+    traj_id = str(df['traj_id'].iloc[0])
+    # TODO: implement different directories for different experiements
+    out_path = data_dir / f'trajectories/{vessel_type}/{traj_id}.png'
+    out_images(out_path, traj)
     return
 
 
-def get_traj(df, ID, min_length, seq_id, date):
-    """
-    takes in one month of data and generates list of trajectories on given day
-    """
-    # Building Trajectories
-    t_start = datetime.now()
-    trajectories = []
-    traj_count = 0
-    for key, values in df.groupby([ID]):
-        seq_id += 1
-        trajectory = mp.Trajectory(key, values)
-        # split by gap here if len greater then 1 loop through values for each
-        split_trajectory = trajectory.split_by_observation_gap(timedelta(minutes=30))
-        if len(split_trajectory) > 1:
-            for i in split_trajectory:
-                if i.get_length() < MIN_LENGTH:
-                    # eliminate trajectories with too few pings
-                    continue
-                else:
-                    seq_id += 1
-                    # trajectories.append(i)
-                    traj_count += 1
-                    trajectory = save_matplotlib_img(i, 'AIS Vessel Type', seq_id, date)
-        else:
-            # trajectories.append(trajectory)
-            traj_count += 1
-            trajectory = save_matplotlib_img(trajectory, 'AIS Vessel Type', seq_id, date)
-
-    return print(
-        "{} created {} trajectories in {}".format(str(date), traj_count, datetime.now() - t_start))  # trajectories
+# def get_traj(df, ID, min_length, seq_id, date):
+#     """
+#     takes in one month of data and generates list of trajectories on given day
+#     """
+#
+#     trajectories = []
+#     traj_count = 0
+#     for key, values in df.groupby([ID]):
+#         seq_id += 1
+#         trajectory = mp.Trajectory(key, values)
+#         # split by gap here if len greater then 1 loop through values for each
+#         split_trajectory = trajectory.split_by_observation_gap(timedelta(minutes=30))
+#         if len(split_trajectory) > 1:
+#             for i in split_trajectory:
+#                 if i.get_length() < MIN_LENGTH:
+#                     # eliminate trajectories with too few pings
+#                     continue
+#                 else:
+#                     seq_id += 1
+#                     # trajectories.append(i)
+#                     traj_count += 1
+#                     trajectory = save_matplotlib_img(i, 'AIS Vessel Type', seq_id, date)
+#         else:
+#             # trajectories.append(trajectory)
+#             traj_count += 1
+#             trajectory = save_matplotlib_img(trajectory, 'AIS Vessel Type', seq_id, date)
+#
+#     return print(
+#         "{} created {} trajectories in {}".format(str(date), traj_count, datetime.now() - t_start))  # trajectories
 
 
 # Executed Code Starts Here
