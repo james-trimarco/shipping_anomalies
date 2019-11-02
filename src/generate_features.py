@@ -34,9 +34,11 @@ def run(min_pings=50):
                     AS (
                         SELECT mmsi,
                                time_stamp::DATE
+                               vessel_type
                         FROM features.cnn_sample
                         GROUP BY mmsi,
                                  time_stamp::DATE
+                                 vessel_type
                         HAVING count(*) > 50
                         )
                     SELECT c.*
@@ -65,7 +67,7 @@ def run(min_pings=50):
 
         ### CREATE TRAJECTORY IDs
         for split_index, trajectory in enumerate(split_trajectories):
-            # create a universal trajectory ID:
+            # create a universal trajectory ID
             # format is: mmsi-date-split_index
             trajectory.df['traj_id'] = str(name[1]) + '-' + str(name[0].date()) + '-' + str(split_index)
 
@@ -78,6 +80,7 @@ def run(min_pings=50):
                     # import pdb; pdb.set_trace()
                     quants = compute_quants(split.df[['time_stamp', 'longitude', 'latitude']])
                     quants['traj_id'] = str(split.df['traj_id'].iloc[0])
+                    quants['vessel_type'] = str(split.df['vessel_type'].iloc[0])
                     quants.to_sql('quants', engine, schema='features',
                                   if_exists='append', index=False)
                 except:
