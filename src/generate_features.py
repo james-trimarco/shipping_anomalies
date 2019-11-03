@@ -27,10 +27,14 @@ def run(min_pings=50):
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
     # Create a sql table with complete trajectories
-    # create_cnn_sample(sql_dir, engine, min_pings=min_pings)
+    sample_switch = input("Create new sample for Convolutional Neural Net?")
+    if sample_switch in ['Y', 'y', '1', 'Yes']:
+        print("Creating CNN sample.")
+        create_cnn_sample(sql_dir, engine, min_pings=min_pings, min_dist=2.5)
     # Get data to process from postgres
     execute_sql('drop table if exists features.quants;', engine, read_file=False)
     if (data_dir / 'trajectories').is_dir():
+        print("Removing old trajectories directory.")
         remove_dir(data_dir / 'trajectories')
     df = execute_sql("""
                     WITH sample
@@ -52,11 +56,12 @@ def run(min_pings=50):
                      engine, read_file=False,
                      return_df=True)
     # Set data types of several key columns
-    df['time_stamp'] = pd.to_datetime(df['time_stamp'])
+    df = df.rename(columns={'time_stamp': 't'})
+    df['t'] = pd.to_datetime(df['t'])
     df['longitude'] = pd.to_numeric(df['longitude'])
     df['latitude'] = pd.to_numeric(df['latitude'])
     # Set df index
-    df.index = df['time_stamp']
+    df.index = df['t']
     df_geo = df_to_geodf(df)
     # Filter by date and mmsi
     df_group = df_geo.groupby([pd.Grouper(freq='D'), 'mmsi'])
@@ -65,6 +70,7 @@ def run(min_pings=50):
         if len(group) < min_pings:
             continue
         trajectory = mp.Trajectory(name, group)
+        print(trajectory.df.columns)
         # Split the trajectory at the gap
         split_trajectories = list(trajectory.split_by_observation_gap(timedelta(minutes=30)))
 
@@ -80,26 +86,22 @@ def run(min_pings=50):
                 continue
             else:
                 try:
-                    # import pdb; pdb.set_trace()
-                    quants = compute_quants(split.df[['time_stamp', 'longitude', 'latitude']])
+                    quants = compute_quants(split.df[['longitude', 'latitude']])
                     quants['traj_id'] = str(split.df['traj_id'].iloc[0])
                     quants['vessel_type'] = str(split.df['vessel_type'].iloc[0])
                     quants.to_sql('quants', engine, schema='features',
                                   if_exists='append', index=False)
+                    ### WRITE IMAGES TO DISK
                     save_matplotlib_img(split, data_dir)
                 except:
-                    print("An error occurred computing quants.")
-
-        ### WRITE IMAGES TO DISK
-
-        
+                    print(f"An error occurred processing trajectory {split.df['traj_id'].iloc[0]}.") 
 
     # Create standard window size for images
-    traj_lon = df_group['longitude'].agg(np.ptp)
-    traj_lat = df_group['latitude'].agg(np.ptp)
-    window_lon = traj_lon.mean() + 2 * traj_lon.std()
-    window_lat = traj_lat.mean() + 2 * traj_lat.std()
-    print("window size : ", round(window_lon, 2), ' ', round(window_lat, 2))
+    # traj_lon = df_group['longitude'].agg(np.ptp)
+    # traj_lat = df_group['latitude'].agg(np.ptp)
+    # window_lon = traj_lon.mean() + 2 * traj_lon.std()
+    # window_lat = traj_lat.mean() + 2 * traj_lat.std()
+    # print("window size : ", round(window_lon, 2), ' ', round(window_lat, 2))
 
     ### CREATE TABLE OF IMAGES
 
@@ -126,4 +128,4 @@ def run(min_pings=50):
 
 
 if __name__ == '__main__':
-    run(min_pings=50)
+    run(min_pings=30)

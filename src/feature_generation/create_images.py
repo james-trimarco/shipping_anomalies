@@ -53,7 +53,8 @@ def out_images(out_path, traj1):
     # import pdb; pdb.set_trace()
     # traj1.add_speed()
     coord = new_box(traj1.get_bbox())
-    ax = traj1.plot(with_basemap=False, vmin=0, vmax=20, cmap="Greys_r")
+    ax = traj1.plot(column = 'speed', 
+                    with_basemap=False, vmin=0, vmax=20, cmap="Greys_r")
     ax.set_axis_off()
     ax.set_ylim([coord[1], coord[3]])
     ax.set_xlim([coord[0], coord[2]])
