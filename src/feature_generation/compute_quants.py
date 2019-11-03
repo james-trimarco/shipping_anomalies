@@ -99,8 +99,8 @@ def compute_quants(df):
     # for division (set back to 0 later for distributions)
     df_diff.loc[(df_diff.index == df_diff.index[0]), 'longitude'] = np.float(0)
     df_diff.loc[(df_diff.index == df_diff.index[0]), 'latitude'] = np.float(0)
-    df_diff.loc[(df_diff.index == df_diff.index[0]), 'time_stamp'] = pd.Timedelta('1 second')
-    df['t_lag'] = df_diff['time_stamp'].apply(lambda x: x.total_seconds())
+    df_diff.loc[(df_diff.index == df_diff.index[0]), 't'] = pd.Timedelta('1 second')
+    df['t_lag'] = df_diff['t'].apply(lambda x: x.total_seconds())
     df['lat_lag'] = df_diff['latitude']
     df['lon_lag'] = df_diff['longitude']
     df['v_lat'] = df['lat_lag'] / df['t_lag']
