@@ -10,6 +10,14 @@ from feature_generation.create_samples import create_cnn_sample
 from feature_generation.compute_quants import *
 import time
 
+def create_cnn_sample(sql_dir, engine, min_pings_init, min_dist):
+    params = {}
+    # Set all parameters for sql file
+    params['min_pings_init'] = int(min_pings_init)
+    params['min_dist'] = float(min_dist)
+    sql_file = sql_dir / 'create_sample_trajectories.sql'
+    execute_sql(sql_file, engine, read_file=True, params=params)
+    print('Created table of sample trajectories for CNN.')
 
 def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
     """
