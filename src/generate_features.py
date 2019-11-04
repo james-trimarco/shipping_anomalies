@@ -1,12 +1,10 @@
 import settings
 from utils import create_connection_from_dict, execute_sql, remove_dir
 import pandas as pd
-import numpy as np
 import movingpandas as mp
 from datetime import timedelta
 import sqlalchemy as db
 from feature_generation.create_images import df_to_geodf, save_matplotlib_img
-from feature_generation.create_samples import create_cnn_sample
 from feature_generation.compute_quants import *
 import time
 
@@ -83,7 +81,7 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
         if len(group) < min_pings:
             continue
         trajectory = mp.Trajectory(name, group)
-        print(trajectory.df.columns)
+
         # Split the trajectory at the gap
         split_trajectories = list(trajectory.split_by_observation_gap(timedelta(minutes=30)))
 
@@ -96,7 +94,7 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
         ### CREATE QUANT FEATURES AND WRITE IMAGES TO DISK
 
         for split in split_trajectories:
-            if len(split.df) < min_pings:
+            if len(split.df) < min_pings_split:
                 continue
             else:
                 try:
