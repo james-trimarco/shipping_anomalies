@@ -7,6 +7,7 @@ def fishing_prefilter(df, turn90=3, turn30=5, direct=2):
     # Filter the dataframe to fishing vessels
     fishing_df = df[df['vessel_type'] == 'Fishing'].copy()
 
+    # TODO: Make row_filter nested function modular to kwargs
     # Create a function that will label rows as fishy or not fishy
     def row_filter(row):
         if row['turn90'] >= turn90 and row['turn30'] >= turn30 and row['direct'] >= direct:
