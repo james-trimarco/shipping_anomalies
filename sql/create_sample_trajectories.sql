@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS features.fishing_segments;
             GROUP BY v.mmsi,
                      v.ais_vessel_type,
                      a.time_stamp::DATE
-            HAVING count(*) > {min_pings} -- Removes trajectories with few pings analysis
+            HAVING count(*) > {min_pings_init} -- Removes trajectories with few pings analysis
             ) SELECT a.mmsi,
                      a.time_stamp,
                      a.latitude,
@@ -22,7 +22,7 @@ DROP TABLE IF EXISTS features.fishing_segments;
              FROM cleaned.ais a
         INNER JOIN fishing_segments f ON a.mmsi = f.mmsi
         AND a.time_stamp::DATE = f.time_stamp::DATE
-        WHERE ST_Length(ST_LongestLine(f.circle, f.circle)::geography) / 1000 > 5.0 -- Removes short trajectories from analysis
+        WHERE ST_Length(ST_LongestLine(f.circle, f.circle)::geography) / 1000 > {min_dist} -- Removes short trajectories from analysis
         );
 create index fishing_pings_idx on features.fishing_segments(mmsi);
 
@@ -37,11 +37,11 @@ DROP TABLE IF EXISTS features.nonfishing_segments;
             FROM cleaned.ais a
             INNER JOIN cleaned.vessels v
             ON a.mmsi = v.mmsi
-            WHERE v.ais_vessel_type IN ('Cargo', 'Sailing Vessel')
+            WHERE v.ais_vessel_type != 'Fishing'
             GROUP BY v.mmsi,
                      v.ais_vessel_type,
                      a.time_stamp::DATE
-            HAVING count(*) > {min_pings}
+            HAVING count(*) > {min_pings_init}
             ) SELECT a.mmsi,
                      a.time_stamp,
                      a.latitude,
@@ -51,7 +51,7 @@ DROP TABLE IF EXISTS features.nonfishing_segments;
             FROM cleaned.ais a
         INNER JOIN nonfishing_segments f ON a.mmsi = f.mmsi
         AND a.time_stamp::DATE = f.time_stamp::DATE
-        WHERE ST_Length(ST_LongestLine(f.circle, f.circle)::geography) / 1000 > 5.0
+        WHERE ST_Length(ST_LongestLine(f.circle, f.circle)::geography) / 1000 > {min_dist}
         );
 create index nonfishing_pings_idx on features.nonfishing_segments(mmsi);
 
