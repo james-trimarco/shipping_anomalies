@@ -78,7 +78,7 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
     # Loop through the grouped dataframes
     counter = 0
     for name, group in df_group:
-        if len(group) < min_pings:
+        if len(group) < min_pings_init:
             continue
         trajectory = mp.Trajectory(name, group)
 
