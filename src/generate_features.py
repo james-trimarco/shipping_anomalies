@@ -27,7 +27,7 @@ def run(min_pings=50):
     # Create SQLAlchemy engine from database credentials
     engine = create_connection_from_dict(psql_credentials, 'postgresql')
     # Create a sql table with complete trajectories
-    sample_switch = input("Create new sample for Convolutional Neural Net?")
+    sample_switch = input("Create new sample for Convolutional Neural Net? (Y/N)")
     if sample_switch in ['Y', 'y', '1', 'Yes']:
         print("Creating CNN sample.")
         create_cnn_sample(sql_dir, engine, min_pings=min_pings, min_dist=2.5)
@@ -36,25 +36,14 @@ def run(min_pings=50):
     if (data_dir / 'trajectories').is_dir():
         print("Removing old trajectories directory.")
         remove_dir(data_dir / 'trajectories')
-    df = execute_sql("""
-                    WITH sample
-                    AS (
-                        SELECT mmsi,
-                               time_stamp::DATE,
-                               vessel_type
-                        FROM features.cnn_sample
-                        GROUP BY mmsi,
-                                 time_stamp::DATE,
-                                 vessel_type
-                        HAVING count(*) > 50
-                        )
-                    SELECT c.*
-                    FROM features.cnn_sample c
-                    INNER JOIN sample s ON c.mmsi = s.mmsi
-                        AND c.time_stamp::DATE = s.time_stamp::DATE;
-                     """,
-                     engine, read_file=False,
-                     return_df=True)
+
+    try:
+        df = execute_sql("select * from features.cnn_sample", engine, read_file=False, return_df=True)
+        print("Grabbing trajectory data")
+    except sqlalchemy.exc.ProgrammingError:
+        print("The table features.cnn_sample doesn't exist. Please create one.")
+        raise SystemExit
+
     # Set data types of several key columns
     df = df.rename(columns={'time_stamp': 't'})
     df['t'] = pd.to_datetime(df['t'])
