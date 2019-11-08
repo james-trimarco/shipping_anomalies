@@ -89,18 +89,22 @@ def compute_quants(df):
     :return outrow: Pandas Dataframe
         A dataframe with a single row and many numeric columns.
     """
-
+    print(df.columns)
     # First convert initial rows to a form that includes velocity
     df = df.sort_index()
     # Take the diff
-    df_diff = df.diff()  # .dropna()
-
+    #df_diff = df.diff()  # .dropna()
+    df_diff = df.copy()
+    df_diff['timestamp'] = df.index
+    df_diff = df_diff.diff()
     # Set NA values on first step to 0, but set first time value to 1
     # for division (set back to 0 later for distributions)
     df_diff.loc[(df_diff.index == df_diff.index[0]), 'longitude'] = np.float(0)
     df_diff.loc[(df_diff.index == df_diff.index[0]), 'latitude'] = np.float(0)
-    df_diff.loc[(df_diff.index == df_diff.index[0]), 't'] = pd.Timedelta('1 second')
-    df['t_lag'] = df_diff['t'].apply(lambda x: x.total_seconds())
+    #df_diff.loc[(df_diff.index == df_diff.index[0]), 't'] = pd.Timedelta('1 second')
+    df_diff.loc[(df_diff.index == df_diff.index[0]), 'timestamp'] = pd.Timedelta('1 second')
+    #df['t_lag'] = df_diff['t'].apply(lambda x: x.total_seconds())
+    df['t_lag'] = df_diff['timestamp'].apply(lambda x: x.total_seconds())
     df['lat_lag'] = df_diff['latitude']
     df['lon_lag'] = df_diff['longitude']
     df['v_lat'] = df['lat_lag'] / df['t_lag']
@@ -195,6 +199,7 @@ def compute_quants(df):
     outrow['t_lag_mean'] = [np.mean(df['t_lag'])]
     outrow['t_lag_sd'] = [np.std(df['t_lag'])]
     outrow['t_lag_max'] = [max(df['t_lag'])]
+    print(outrow[['maxspeed','meanspeed','t_total','t_lag_mean','t_lag_sd','t_lag_max']])
     # coerce types to real
     outrow = outrow.apply(lambda x: [np.real(y) for y in x])
 
