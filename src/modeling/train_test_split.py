@@ -3,10 +3,10 @@ from pathlib import Path
 import random
 import shutil
 
-root = Path.cwd()
-fishing_dir = root/'fishing'
-not_fishing_dir = root/'not_fishing'
-split_dir = root/'split'
+#root = Path.cwd()
+#fishing_dir = root/'fishing'
+#not_fishing_dir = root/'not_fishing'
+#split_dir = root/'split'
 
 # Must have a fishing folder and not_fishing folder containing images within EDA folder
 def split_data(class_1_directory, class_2_directory, split_directory, binary_name, set_seed=223):
@@ -23,7 +23,7 @@ def split_data(class_1_directory, class_2_directory, split_directory, binary_nam
     :param set_seed:
     :return:
     """
-
+    #import pdb; pdb.set_trace()
     if class_1_directory.is_dir() and class_2_directory.is_dir():
         (split_directory/'train'/str(binary_name)).mkdir(parents=True, exist_ok=True)
         (split_directory/'train'/str('no_' + binary_name)).mkdir(parents=True, exist_ok=True)
@@ -96,4 +96,4 @@ def split_data(class_1_directory, class_2_directory, split_directory, binary_nam
         print("ERROR: One or both of the data directories do not exist!")
         return -1
         
-split_data(fishing_dir, not_fishing_dir, split_dir, "fishing")
+#split_data(fishing_dir, not_fishing_dir, split_dir, "fishing")
