@@ -5,6 +5,7 @@ import shutil
 from utils import create_connection_from_dict, execute_sql
 from modeling.label_images import fishing_prefilter, nonfishing_dataframe_creator, sampler, trajectory_separator
 from modeling.train_test_split import split_data
+from modeling.train_cnn import run_cnn
 
 
 def run():
@@ -37,6 +38,9 @@ def run():
 
     # Create train / test split
     split_data(labeled_fishing_dir, labeled_nonfishing_dir, cnn_split_dir, binary_name='fishing', set_seed=223)
+    
+    # Train the cnn
+    run_cnn(cnn_split_dir, batchsize=256, epochs=30)
 
 if __name__ == '__main__':
     run()
