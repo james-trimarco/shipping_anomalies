@@ -8,19 +8,12 @@ from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
-# NOTE: This assumes two folders exist within eda containing movingpandas fishing and non_fishing data in the following format:
-# /eda/split/train/fishing/
-# /eda/split/train/no_fishing/
-# /eda/split/test/fishing/
-# /eda/split/test/no_fishing/
-
-
-def run_cnn(batchsize=256, epochs=30):
+def run_cnn(train_directory, test_directory, batchsize=256, epochs=30):
     
     # Pointing to directory containing train and test data
     # NOTE: This needs to be modified
-    train_dir = Path.cwd()/'split'/'train'
-    test_dir = Path.cwd()/'split'/'test'
+    train_dir = train_directory/'train'
+    test_dir = test_directory/'test'
 
     # Image dimensions
     IMG_HEIGHT = 128
