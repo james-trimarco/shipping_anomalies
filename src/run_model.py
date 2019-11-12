@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 from utils import create_connection_from_dict, execute_sql
 from modeling.label_images import fishing_prefilter, nonfishing_dataframe_creator, sampler, trajectory_separator
+from modeling.train_test_split import split_data
 
 
 def run():
@@ -20,12 +21,20 @@ def run():
     quants_df = execute_sql('select * from features.quants;', engine, read_file=False, return_df=True)
 
     data_dir = settings.get_data_dir()
+    labeled_fishing_dir = data_dir / 'ais_project_data' /' fishing'
+    labeled_nonfishing_dir = data_dir / 'ais_project_data' / 'nonfishing'
+    cnn_split_dir = data_dir / 'ais_project_data' / 'cnn_split'
+    cnn_split_dir.mkdir(parents=True, exist_ok=True)
 
+
+    # Create labeled data
     fishy_stuff = fishing_prefilter(quants_df)
     nonfish = nonfishing_dataframe_creator(quants_df, fishy_stuff)
     dataset = sampler(fishy_stuff, nonfish)
-    trajectory_seperator(dataset, data_dir)
+    trajectory_separator(dataset, data_dir)
 
+    # Create train / test split
+    split_data(labeled_fishing_dir, labeled_nonfishing_dir, cnn_split_dir, binary_name='fishing', set_seed=223)
 
 if __name__ == '__main__':
     run()
