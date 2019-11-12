@@ -14,18 +14,21 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 # /eda/split/test/fishing/
 # /eda/split/test/no_fishing/
 
-#Pointing to directory containing train and test daya
-train_dir = Path.cwd()/'split'/'train'
-test_dir = Path.cwd()/'split'/'test'
 
-def run_cnn(batchsize=256, epoch=30)
+def run_cnn(batchsize=256, epochs=30):
+    
+    # Pointing to directory containing train and test data
+    # NOTE: This needs to be modified
+    train_dir = Path.cwd()/'split'/'train'
+    test_dir = Path.cwd()/'split'/'test'
+
     # Image dimensions
     IMG_HEIGHT = 128
     IMG_WIDTH = 128
 
     # Model hyperparameters
     batch_size = batchsize
-    epoch = 30
+    epoch = epochs
 
     # Train generator parameters: Allow for horizontal and vertical transformations
     train_image_generator = ImageDataGenerator(rescale=1./255, horizontal_flip=True, vertical_flip=True)
