@@ -24,7 +24,7 @@ def run():
     fishy_stuff = fishing_prefilter(quants_df)
     nonfish = nonfishing_dataframe_creator(quants_df, fishy_stuff)
     dataset = sampler(fishy_stuff, nonfish)
-    trajectory_seperator(dataset, data_dir)
+    trajectory_separator(dataset, data_dir)
 
 
 if __name__ == '__main__':
