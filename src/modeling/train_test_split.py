@@ -10,14 +10,27 @@ split_dir = root/'split'
 
 # Must have a fishing folder and not_fishing folder containing images within EDA folder
 def split_data(class_1_directory, class_2_directory, split_directory, binary_name, set_seed=223):
+    """
+    :param class_1_directory: pathlib path object
+        Where your fishing directory is
+    :param class_2_directory: pathlib path object
+        Where your nonfishing directory is
+    :param split_directory: pathlib path object
+        The location where you want the train and test directories to live
+    :param binary_name: str
+        Inside both /train and /split, the positive class will be named this; the
+        negative class will be named this with prefix 'no_'.
+    :param set_seed:
+    :return:
+    """
 
-    if class_1_directory.is_dir() and class_2_directory:
-        (split_dir/'train'/str(binary_name)).mkdir(parents=True, exist_ok=True)
-        (split_dir/'train'/str('no_' + binary_name)).mkdir(parents=True, exist_ok=True)
-        (split_dir/'val'/str(binary_name)).mkdir(parents=True, exist_ok=True)
-        (split_dir/'val'/str('no_' + binary_name)).mkdir(parents=True, exist_ok=True)
-        (split_dir/'test'/str(binary_name)).mkdir(parents=True, exist_ok=True)
-        (split_dir/'test'/str('no_' + binary_name)).mkdir(parents=True, exist_ok=True)
+    if class_1_directory.is_dir() and class_2_directory.is_dir():
+        (split_directory/'train'/str(binary_name)).mkdir(parents=True, exist_ok=True)
+        (split_directory/'train'/str('no_' + binary_name)).mkdir(parents=True, exist_ok=True)
+        (split_directory/'val'/str(binary_name)).mkdir(parents=True, exist_ok=True)
+        (split_directory/'val'/str('no_' + binary_name)).mkdir(parents=True, exist_ok=True)
+        (split_directory/'test'/str(binary_name)).mkdir(parents=True, exist_ok=True)
+        (split_directory/'test'/str('no_' + binary_name)).mkdir(parents=True, exist_ok=True)
 
         # Obtain files from class 1 and class 2:
         class_1_files = os.listdir(class_1_directory)
@@ -39,19 +52,19 @@ def split_data(class_1_directory, class_2_directory, split_directory, binary_nam
 
         for item in train_filenames:
             s = os.path.join(class_1_directory, item)
-            d = os.path.join((split_dir/'train'/str(binary_name)), item)
+            d = os.path.join((split_directory/'train'/str(binary_name)), item)
 
             shutil.copy(s, d)
 
         #for item in dev_filenames:
             #s = os.path.join(class_1_directory, item)
-            #d = os.path.join((split_dir/'val/'/str(binary_name)), item)
+            #d = os.path.join((split_directory/'val/'/str(binary_name)), item)
 
             #shutil.copy(s, d)
 
         for item in test_filenames:
             s = os.path.join(class_1_directory, item)
-            d = os.path.join((split_dir/'test'/str(binary_name)), item)
+            d = os.path.join((split_directory/'test'/str(binary_name)), item)
 
             shutil.copy(s, d)
 
@@ -63,19 +76,19 @@ def split_data(class_1_directory, class_2_directory, split_directory, binary_nam
 
         for item in train_filenames:
             s = os.path.join(class_2_directory, item)
-            d = os.path.join(split_dir/'train'/str('no_' + binary_name), item)
+            d = os.path.join(split_directory/'train'/str('no_' + binary_name), item)
 
             shutil.copy(s, d)
 
         #for item in dev_filenames:
             #s = os.path.join(class_2_directory, item)
-            #d = os.path.join(split_dir/'val'/str('no_' + binary_name)), item)
+            #d = os.path.join(split_directory/'val'/str('no_' + binary_name)), item)
 
             #shutil.copy(s, d)
 
         for item in test_filenames:
             s = os.path.join(class_2_directory, item)
-            d = os.path.join((split_dir/'test'/str('no_' + binary_name)), item)
+            d = os.path.join((split_directory/'test'/str('no_' + binary_name)), item)
 
             shutil.copy(s, d)
 
