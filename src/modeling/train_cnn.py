@@ -8,12 +8,12 @@ from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
-def run_cnn(train_directory, test_directory, batchsize=256, epochs=30):
+def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     
     # Pointing to directory containing train and test data
     # NOTE: This needs to be modified
-    train_dir = train_directory/'train'
-    test_dir = test_directory/'test'
+    train_dir = split_directory/'train'
+    test_dir = split_directory/'test'
 
     # Image dimensions
     IMG_HEIGHT = 128
@@ -32,7 +32,7 @@ def run_cnn(train_directory, test_directory, batchsize=256, epochs=30):
                                                                shuffle=True,
                                                                target_size=(IMG_HEIGHT, IMG_WIDTH),
                                                                class_mode='binary',
-                                                               color_mode='rgb')
+                                                               color_mode=color_mode)
 
     # Test generator parameters
     test_image_generator = ImageDataGenerator(rescale=1./255)
@@ -42,7 +42,7 @@ def run_cnn(train_directory, test_directory, batchsize=256, epochs=30):
                                                                   directory=test_dir,
                                                                   target_size=(IMG_HEIGHT, IMG_WIDTH),
                                                                   class_mode='binary',
-                                                                  color_mode='rgb')
+                                                                  color_mode=color_mode)
 
     # Creating basic tf.keras sequential model
     model = Sequential([
@@ -53,7 +53,7 @@ def run_cnn(train_directory, test_directory, batchsize=256, epochs=30):
         Conv2D(16, 3, padding='same', activation='relu'),
         MaxPooling2D(),
         Conv2D(32, 3, padding='same', activation='relu'),
-        Conv2D(32, 3, padding='same', activation='relu')
+        Conv2D(32, 3, padding='same', activation='relu'),
         MaxPooling2D(),
         Flatten(),
         Dense(256, activation='relu'),

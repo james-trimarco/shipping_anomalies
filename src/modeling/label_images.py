@@ -3,14 +3,15 @@ from pathlib import Path
 import shutil
 
 
-def fishing_prefilter(df, turn90=3, turn30=5, direct=2):
+def fishing_prefilter(df, turn90=3, turn30=5, squiggle=2.5):
     # Filter the dataframe to fishing vessels
     fishing_df = df[df['vessel_type'] == 'Fishing'].copy()
 
+    fishing_df['squiggle'] = df['curve_len']/ df['direct']
     # TODO: Make row_filter nested function modular to kwargs
     # Create a function that will label rows as fishy or not fishy
     def row_filter(row):
-        if row['turn90'] >= turn90 and row['turn30'] >= turn30 and row['direct'] >= direct:
+        if row['turn90'] >= turn90 and row['turn30'] >= turn30 and row['squiggle'] >= squiggle:
             val = 1
         else:
             val = 0
@@ -31,7 +32,7 @@ def nonfishing_dataframe_creator(df, fishing_df):
     return nonfishing_df
 
 
-def sampler(df_fish, df_nonfish, n=None, frac=None, dataset_frac=0.5, seed=223):
+def sampler(df_fish, df_nonfish, n=None, frac=1, dataset_frac=0.5, seed=223):
     # Filter the dataframe to fishy fishing vessels
     fishy_fishing_df = df_fish[df_fish['prefilter'] == 1].drop(['prefilter'], axis=1).copy()
 
