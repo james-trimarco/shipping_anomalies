@@ -46,26 +46,40 @@ def new_box(bbox_tuple):
         return bbox_tuple
 
 
-def out_images(out_path, traj1):
+def out_images(out_path, trj_in, base_map):
     """
     Converts trajectory to image and saves to out_dir
     """
     # import pdb; pdb.set_trace()
     # traj1.add_speed()
-    coord = new_box(traj1.get_bbox())
-    ax = traj1.plot(column = 'speed', 
-                    with_basemap=False, vmin=0, vmax=20, cmap="Greys_r")
+
+    trj_trj = trj_in # trajectory object in
+    trj_trj.df = trj_trj.df.to_crs(epsg=4326) # stame.toner CRS = 3857
+    temp_df = trj_in.get_df_with_speed()
+    temp_df = temp_df.assign(prev_pt=temp_df.geometry.shift())
+    temp_df['line'] = temp_df.apply(trj_trj._connect_prev_pt_and_geometry, axis=1)
+    temp_df = temp_df.set_geometry('line')[1:]
+
+    fig, ax = plt.subplots(facecolor = 'black', edgecolor = 'none')
+    # Adding features to plot
+    temp_df.plot(ax = ax, column = 'speed',vmin =0, vmax = 20, cmap = 'Reds')
+    basemap.plot(ax = ax, color = 'white')
+
+    # Resizing plot bounding box
+    cord = new_box(trj_trj.get_bbox())
     ax.set_axis_off()
-    ax.set_ylim([coord[1], coord[3]])
-    ax.set_xlim([coord[0], coord[2]])
+    ax.set_ylim([cord[1],cord[3]])
+    ax.set_xlim([cord[0],cord[2]])
+    
     fig = ax.get_figure()
-    fig.savefig(out_path, bbox_inches='tight', dpi=72, pad_inches=0)
+    fig.savefig(out_path,bbox_inches = 'tight', dpi=42.7, pad_inches=0,facecolor=fig.get_facecolor())
     fig.clf()
     plt.close()
+
     return
 
 
-def save_matplotlib_img(split, data_dir):
+def save_matplotlib_img(split, data_dir, base_map):
     """
     Finds the correct directory and filename for a split trajectory and requests
     writing of a png.
@@ -82,6 +96,6 @@ def save_matplotlib_img(split, data_dir):
     out_dir = data_dir / f'trajectories/{vessel_type}'
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / traj_id
-    out_images(out_path, split)
+    out_images(out_path, split,base_map)
     return
 
