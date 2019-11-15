@@ -63,14 +63,14 @@ def out_images(out_path, trj_in, base_map):
     fig, ax = plt.subplots(facecolor = 'black', edgecolor = 'none')
     # Adding features to plot
     temp_df.plot(ax = ax, column = 'speed',vmin =0, vmax = 20, cmap = 'Reds')
-    basemap.plot(ax = ax, color = 'white')
+    base_map.plot(ax = ax, color = 'white')
 
     # Resizing plot bounding box
     cord = new_box(trj_trj.get_bbox())
     ax.set_axis_off()
     ax.set_ylim([cord[1],cord[3]])
     ax.set_xlim([cord[0],cord[2]])
-    
+
     fig = ax.get_figure()
     fig.savefig(out_path,bbox_inches = 'tight', dpi=42.7, pad_inches=0,facecolor=fig.get_facecolor())
     fig.clf()
