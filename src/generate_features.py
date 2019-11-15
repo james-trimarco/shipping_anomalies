@@ -94,7 +94,10 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
         ### CREATE QUANT FEATURES AND WRITE IMAGES TO DISK
 
         for split in split_trajectories:
-            if len(split.df) < min_pings_split:
+            # store the length of the split trajectory in km
+            traj_length = split.get_length() / 1_000
+            if (len(split.df) < min_pings_split) or (traj_length < .5):
+                print(f"Dropping a trajectory with length: {str(traj_length)} km and {str(len(split.df))} pings.")
                 continue
             else:
                 try:
@@ -115,4 +118,4 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
 
 
 if __name__ == '__main__':
-    run(min_pings_init=30, min_pings_split=20, min_dist=2.0)
+    run(min_pings_init=30, min_pings_split=15, min_dist=2.0)
