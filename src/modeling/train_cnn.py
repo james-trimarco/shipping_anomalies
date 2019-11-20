@@ -21,6 +21,12 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     # Image dimensions
     IMG_HEIGHT = 128
     IMG_WIDTH = 128
+    
+    # Check color mode for channels
+    if color_mode=='rgb':
+        IMG_DEPTH = 3
+    else:
+        IMG_DEPTH = 1
 
     # Model hyperparameters
     batch_size = batchsize
@@ -49,7 +55,7 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
 
     # Creating basic tf.keras sequential model
     model = Sequential([
-        Conv2D(8, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH ,1)),
+        Conv2D(8, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH ,IMG_DEPTH)),
         Conv2D(8, 3, padding='same', activation='relu'),
         MaxPooling2D(),
         Conv2D(16, 3, padding='same', activation='relu'),
