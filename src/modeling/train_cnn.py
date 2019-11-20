@@ -107,21 +107,21 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     Y_pred = Y_confidence.round()
     Y_true = test_data_gen.classes
     fpr, tpr, thresholds = roc_curve(Y_true, Y_confidence)
-    auc = auc(fpr, tpr)
+    area = auc(fpr, tpr)
     precision, recall, thresholds = precision_recall_curve(Y_true, Y_confidence)
     
     # Plot ROC and PR Curve
     plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
     plt.plot([0, 1], [0, 1], 'k--')
-    plt.plot(fpr, tpr, label=f'AUC = {auc:.3f}')
+    plt.plot(fpr, tpr, label=f'AUC = {area:.3f}')
     plt.xlabel('False positive rate')
     plt.ylabel('True positive rate')
     plt.title('ROC curve')
     plt.legend(loc='best')
 
     plt.subplot(1, 2, 2)
-    plt.plot(recall, precision, label=f'AUC = {auc:.3f}')
+    plt.plot(recall, precision, label=f'AUC = {area:.3f}')
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.title('Precision-Recall Curve')
