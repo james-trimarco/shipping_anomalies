@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import random
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+from sklearn.metrics import precision_recall_curve
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
@@ -18,6 +21,12 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     # Image dimensions
     IMG_HEIGHT = 128
     IMG_WIDTH = 128
+    
+    # Check color mode for channels
+    if color_mode=='rgb':
+        IMG_DEPTH = 3
+    else:
+        IMG_DEPTH = 1
 
     # Model hyperparameters
     batch_size = batchsize
@@ -46,7 +55,7 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
 
     # Creating basic tf.keras sequential model
     model = Sequential([
-        Conv2D(8, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH ,1)),
+        Conv2D(8, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH ,IMG_DEPTH)),
         Conv2D(8, 3, padding='same', activation='relu'),
         MaxPooling2D(),
         Conv2D(16, 3, padding='same', activation='relu'),
@@ -97,3 +106,31 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     plt.legend(loc='upper right')
     plt.title('Training and Test Loss')
     plt.savefig('cnn_performance.png')
+    plt.close()
+    
+    # Store curve details for ROC and PR Curve
+    Y_confidence = model.predict_generator(test_data_gen).flatten()
+    Y_pred = Y_confidence.round()
+    Y_true = test_data_gen.classes
+    fpr, tpr, thresholds = roc_curve(Y_true, Y_confidence)
+    area = auc(fpr, tpr)
+    precision, recall, thresholds = precision_recall_curve(Y_true, Y_confidence)
+    
+    # Plot ROC and PR Curve
+    plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.plot(fpr, tpr, label=f'AUC = {area:.3f}')
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.title('ROC curve')
+    plt.legend(loc='best')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(recall, precision, label=f'AUC = {area:.3f}')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall Curve')
+    plt.legend(loc='best')
+    plt.savefig('ROC_PR.png')
+    plt.close()
