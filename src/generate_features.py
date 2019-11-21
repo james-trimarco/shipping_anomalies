@@ -2,6 +2,7 @@ import settings
 from utils import create_connection_from_dict, execute_sql, remove_dir
 import pandas as pd
 import movingpandas as mp
+import geopandas
 from datetime import timedelta
 import sqlalchemy as db
 from feature_generation.create_images import df_to_geodf, save_matplotlib_img
@@ -77,6 +78,12 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
     df_group = df_geo.groupby([pd.Grouper(freq='D'), 'mmsi'])
     # Loop through the grouped dataframes
     counter = 0
+
+    #Load basemap shape file
+    base_map = geopandas.read_file('/Akamai/ais_project_data/GSHHS_shp/c/GSHHS_c_L1.shp') # c: coarse, l: low, i: intermedate, h: high, f: full
+    # Set CRS WGS 84
+    base_map = base_map.to_crs(epsg=4326)
+
     for name, group in df_group:
         if len(group) < min_pings_init:
             continue
@@ -94,7 +101,10 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
         ### CREATE QUANT FEATURES AND WRITE IMAGES TO DISK
 
         for split in split_trajectories:
-            if len(split.df) < min_pings_split:
+            # store the length of the split trajectory in km
+            traj_length = split.get_length() / 1_000
+            if (len(split.df) < min_pings_split) or (traj_length < .5):
+                print(f"Dropping a trajectory with length: {str(traj_length)} km and {str(len(split.df))} pings.")
                 continue
             else:
                 try:
@@ -104,7 +114,7 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
                     quants.to_sql('quants', engine, schema='features',
                                   if_exists='append', index=False)
                     ### WRITE IMAGES TO DISK
-                    save_matplotlib_img(split, data_dir)
+                    save_matplotlib_img(split, data_dir,base_map)
                     counter += 1
                 except:
                     print(f"An error occurred processing trajectory {split.df['traj_id'].iloc[0]}.") 
@@ -115,4 +125,4 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
 
 
 if __name__ == '__main__':
-    run(min_pings_init=30, min_pings_split=20, min_dist=2.0)
+    run(min_pings_init=30, min_pings_split=15, min_dist=2.0)
