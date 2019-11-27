@@ -9,6 +9,7 @@ from feature_generation.create_images import df_to_geodf, save_matplotlib_img
 from feature_generation.compute_quants import *
 import time
 
+
 def create_cnn_sample(sql_dir, engine, min_pings_init, min_dist):
     params = {}
     # Set all parameters for sql file
@@ -17,6 +18,7 @@ def create_cnn_sample(sql_dir, engine, min_pings_init, min_dist):
     sql_file = sql_dir / 'create_sample_trajectories.sql'
     execute_sql(sql_file, engine, read_file=True, params=params)
     print('Created table of sample trajectories for CNN.')
+
 
 def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
     """
@@ -79,8 +81,9 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
     # Loop through the grouped dataframes
     counter = 0
 
-    #Load basemap shape file
-    base_map = geopandas.read_file('/Akamai/ais_project_data/GSHHS_shp/c/GSHHS_c_L1.shp') # c: coarse, l: low, i: intermedate, h: high, f: full
+    # Load basemap shape file
+    base_map = geopandas.read_file(
+        '/Akamai/ais_project_data/GSHHS_shp/c/GSHHS_c_L1.shp')  # c: coarse, l: low, i: intermedate, h: high, f: full
     # Set CRS WGS 84
     base_map = base_map.to_crs(epsg=4326)
 
@@ -114,10 +117,10 @@ def run(min_pings_init=30, min_pings_split=20, min_dist=2.0):
                     quants.to_sql('quants', engine, schema='features',
                                   if_exists='append', index=False)
                     ### WRITE IMAGES TO DISK
-                    save_matplotlib_img(split, data_dir,base_map)
+                    save_matplotlib_img(split, data_dir, base_map)
                     counter += 1
                 except:
-                    print(f"An error occurred processing trajectory {split.df['traj_id'].iloc[0]}.") 
+                    print(f"An error occurred processing trajectory {split.df['traj_id'].iloc[0]}.")
 
     end = time.time()
     print(f"Generated features for {str(counter)} images in {str(round(end - start))} seconds.")
