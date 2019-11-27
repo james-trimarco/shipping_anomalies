@@ -149,3 +149,6 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     plt.legend(loc='best')
     plt.savefig('PR.png')
     plt.close()
+
+    model.save('cnn_model.h5')
+    
