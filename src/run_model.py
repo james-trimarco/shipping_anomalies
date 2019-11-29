@@ -25,6 +25,9 @@ def run():
     labeled_fishing_dir = data_dir / 'labeled_data' / 'fishing'
     labeled_nonfishing_dir = data_dir / 'labeled_data' / 'nonfishing'
     cnn_split_dir = data_dir / 'cnn_split'
+    if cnn_split_dir.exists():
+        shutil.rmtree(cnn_split_dir, ignore_errors=False, onerror=None)
+    
     cnn_split_dir.mkdir(parents=True, exist_ok=True)
 
 

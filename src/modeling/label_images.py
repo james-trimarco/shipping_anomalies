@@ -2,7 +2,7 @@ import pandas as pd
 import shutil
 
 
-def fishing_prefilter(df, turn90=3, turn30=5, mean_speed=0.00005, squiggle=2.5):
+def fishing_prefilter(df, turn90=1, turn30=2, mean_speed=0.000075, squiggle=2.2):
     # Filter the dataframe to fishing vessels
     fishing_df = df[df['vessel_type'] == 'Fishing'].copy()
 
@@ -10,8 +10,10 @@ def fishing_prefilter(df, turn90=3, turn30=5, mean_speed=0.00005, squiggle=2.5):
     # TODO: Make row_filter nested function modular to kwargs
     # Create a function that will label rows as fishy or not fishy
     def row_filter(row):
-        if row['turn90'] >= turn90 and row['turn30'] >= turn30 \
-                and mean_speed <= mean_speed and row['squiggle'] >= squiggle:
+        if (row['turn90'] >= turn90 and 
+            row['turn30'] >= turn30 and
+            mean_speed <= mean_speed and 
+            row['squiggle'] >= squiggle):
             val = 1
         else:
             val = 0
@@ -89,7 +91,7 @@ def sampler(df_fish, df_nonfish, n=None, frac=1, dataset_frac=0.5, seed=223):
 
 def trajectory_separator(df, data_directory):
 
-    trajectories_path = data_directory / 'trajectories'
+    trajectories_path = data_directory / 'trajectories_low'
     labeled_path = data_directory / 'labeled_data'
     fishing_path = labeled_path / 'fishing'
     nonfishing_path = labeled_path / 'nonfishing'
