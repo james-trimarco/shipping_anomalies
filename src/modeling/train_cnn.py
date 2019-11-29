@@ -23,6 +23,12 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     # Image dimensions
     IMG_HEIGHT = 128
     IMG_WIDTH = 128
+    
+    # Check color mode for channels	
+    if color_mode=='rgb':	
+        IMG_DEPTH = 3	
+    else:	
+        IMG_DEPTH = 1
 
     # Model hyperparameters
     batch_size = batchsize
@@ -37,21 +43,24 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
                                                                shuffle=True,
                                                                target_size=(IMG_HEIGHT, IMG_WIDTH),
                                                                class_mode='binary',
-                                                               color_mode=color_mode, classes={'no_fishing': 0, 'fishing': 1})
+                                                               color_mode=color_mode, 
+                                                               classes={'no_fishing': 0, 'fishing': 1})
 
     # Test generator parameters
     test_image_generator = ImageDataGenerator(rescale=1./255)
 
     # Generate test images from directory
     test_data_gen = test_image_generator.flow_from_directory(batch_size=batch_size,
-                                                                  directory=test_dir,
-                                                                  target_size=(IMG_HEIGHT, IMG_WIDTH),
-                                                                  class_mode='binary',
-                                                                  color_mode=color_mode, classes={'no_fishing': 0, 'fishing': 1}, shuffle=False)
+                                                             directory=test_dir,
+                                                             target_size=(IMG_HEIGHT, IMG_WIDTH),
+                                                             class_mode='binary',
+                                                             color_mode=color_mode, 
+                                                             classes={'no_fishing': 0, 'fishing': 1}, 
+                                                             shuffle=False)
 
     # Creating basic tf.keras sequential model
     model = Sequential([
-        Conv2D(8, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH ,3)),
+        Conv2D(8, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH ,IMG_DEPTH)),
         Conv2D(8, 3, padding='same', activation='relu'),
         MaxPooling2D(),
         Conv2D(16, 3, padding='same', activation='relu'),
@@ -67,7 +76,7 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     ])
 
     # Early stopping
-    earlystop = EarlyStopping(monitor='val_loss', patience = 3)
+    earlystop = EarlyStopping(monitor='val_loss', restore_best_weights=True, patience = 4)
 
     # Compile the model
     model.compile(optimizer='adam',
