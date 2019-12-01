@@ -13,6 +13,23 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
 
 def Conv_block(layer_in, n_filters, n_conv, batchnorm = False):
+    """
+    Creates a Convolution MaxPool Block
+    Parameters:
+    layer_in: Preceding tf.Keras layer
+        The layer to feed into the convolution block
+    n_filters: int
+        Number of filters each convolution should utilize
+        (8, 16, 32, 64, 128 seem appropriate)
+    n_conv: int
+        Number of convolutions to perform
+        (1, 2, 4 seem appropriate)
+    batchnorm: boolean
+        Whether the model should use batchnormalization
+    Returns:
+    layer_in: tf.Keras layer
+        The layer to feed into the next block of neural network
+    """
     
     for _ in range(n_conv):
         # Conv Layers
@@ -24,12 +41,67 @@ def Conv_block(layer_in, n_filters, n_conv, batchnorm = False):
     return layer_in
 
 def Dense_block(layer_in, n_neurons,n_dense):
+    """
+    Creates a Dense Block (Fully-Connected Layer)
+    Parameters:
+    layer_in: Preceding tf.Keras layer
+        The layer to feed into the dense block
+    n_neurons: int
+        Number of neurons each dense layer should have
+        (64, 128, 256, 512 seem appropriate)
+    n_dense: int
+        Number of dense layers at the end of the network
+        (1 or 2 seem appropriate)
+    Returns:
+    layer_in: tf.Keras layer
+        The layer to feed into the next block of neural network
+    """
+    
     for _ in range(n_dense):
         layer_in = Dense(n_neurons, activation='relu')(layer_in)
     return layer_in
 
 def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb',start_filters=8, depth=2, dense_count = 2, dense_neurons = 256, bnorm = False):
-    
+    """
+    Builds, trains, and saves CNN model w/ performance files.
+    Parameters:
+    split_directory: Pathlib Directory
+        Directory containing the training and test folders
+    batchsize: int
+        Number of images to feed into neural network simultaneously
+        (64, 128, 256 seem appropriate)
+    epochs: int
+        Number of epochs to train the neural network for
+        (30-100 seems appropriate)
+    color_mode: str
+        Selection for whether images are greyscale or rgb
+    start_filters: int
+        Number of convolutional filters at start of CNN
+        (8, 16 seem appropriate)
+    depth: int
+        Number of convolutional blocks network should have
+        (1, 2, 3, 4 seem appropriate)
+    dense_count: int
+        Number of dense layers at the end of the network
+        (1 or 2 seem appropriate)
+    dense_neurons: boolean
+        Number of neurons each dense layer should have
+        (64, 128, 256 seem appropriate)
+    bnorm: boolean
+        Whether the model should use batchnormalization
+    Saves:
+    cnn_performance.png: image
+        Training/Test Accuracy and Loss
+    results.csv: csv
+        Predictions for the test images
+    ROC.png: image
+        Receiver operating characteristic Curve
+    PR.png: image
+        Precision-Recall Curve
+    cnn_model.h5: model
+        The trained convolutional neural network
+    """
+        
     # Pointing to directory containing train and test data
     # NOTE: This needs to be modified
     train_dir = split_directory/'train'
@@ -102,13 +174,26 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb',start_fi
                                                              shuffle=False)
 
     # Creating tf.keras functional model
+    # Input
     image_input = Input(shape=(IMG_HEIGHT, IMG_WIDTH , IMG_DEPTH))
+    
+    # Starting Convolution Block
     layer = Conv_block(image_input, start_filters, 2, batchnorm=bnorm)
+    
+    # Additional Convolution Blocks specified by User
     for i in range(depth):
         layer = Conv_block(layer, start_filters*(2*(i+1)), 2, batchnorm=bnorm)
+        
+    # Flattens 3D Tensor
     layer = Flatten()(layer)
+    
+    # Adds Dense Blocks specified by User
     layer = Dense_block(layer, dense_neurons,dense_count)
+    
+    # Output Layer
     layer = Dense(1, activation='sigmoid')(layer)
+    
+    # Formalizes model
     model = Model(inputs=image_input, outputs=layer)
 
     # Early stopping
