@@ -7,8 +7,8 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 from sklearn.metrics import precision_recall_curve
 import tensorflow as tf
-from tensorflow.keras.models import Model, Input
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, BatchNormalization
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dense, Flatten, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
 
