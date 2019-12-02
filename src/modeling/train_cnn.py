@@ -7,14 +7,101 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 from sklearn.metrics import precision_recall_curve
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dense, Flatten, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
 
-
-def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
+def Conv_block(layer_in, n_filters, n_conv, batchnorm = False):
+    """
+    Creates a Convolution MaxPool Block
+    Parameters:
+    layer_in: Preceding tf.Keras layer
+        The layer to feed into the convolution block
+    n_filters: int
+        Number of filters each convolution should utilize
+        (8, 16, 32, 64, 128 seem appropriate)
+    n_conv: int
+        Number of convolutions to perform
+        (1, 2, 4 seem appropriate)
+    batchnorm: boolean
+        Whether the model should use batchnormalization
+    Returns:
+    layer_in: tf.Keras layer
+        The layer to feed into the next block of neural network
+    """
     
+    for _ in range(n_conv):
+        # Conv Layers
+        layer_in = Conv2D(n_filters, (3,3), padding='same', activation='relu')(layer_in)
+        if batchnorm:
+            layer_in = BatchNormalization()(layer_in)
+    # Max Pooling
+    layer_in = MaxPooling2D((2,2), strides=(2,2))(layer_in)
+    return layer_in
+
+def Dense_block(layer_in, n_neurons,n_dense):
+    """
+    Creates a Dense Block (Fully-Connected Layer)
+    Parameters:
+    layer_in: Preceding tf.Keras layer
+        The layer to feed into the dense block
+    n_neurons: int
+        Number of neurons each dense layer should have
+        (64, 128, 256, 512 seem appropriate)
+    n_dense: int
+        Number of dense layers at the end of the network
+        (1 or 2 seem appropriate)
+    Returns:
+    layer_in: tf.Keras layer
+        The layer to feed into the next block of neural network
+    """
+    
+    for _ in range(n_dense):
+        layer_in = Dense(n_neurons, activation='relu')(layer_in)
+    return layer_in
+
+def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb',start_filters=8, depth=2, dense_count = 2, dense_neurons = 256, bnorm = False):
+    """
+    Builds, trains, and saves CNN model w/ performance files.
+    Parameters:
+    split_directory: Pathlib Directory
+        Directory containing the training and test folders
+    batchsize: int
+        Number of images to feed into neural network simultaneously
+        (64, 128, 256 seem appropriate)
+    epochs: int
+        Number of epochs to train the neural network for
+        (30-100 seems appropriate)
+    color_mode: str
+        Selection for whether images are greyscale or rgb
+    start_filters: int
+        Number of convolutional filters at start of CNN
+        (8, 16 seem appropriate)
+    depth: int
+        Number of convolutional blocks network should have
+        (1, 2, 3, 4 seem appropriate)
+    dense_count: int
+        Number of dense layers at the end of the network
+        (1 or 2 seem appropriate)
+    dense_neurons: boolean
+        Number of neurons each dense layer should have
+        (64, 128, 256 seem appropriate)
+    bnorm: boolean
+        Whether the model should use batchnormalization
+    Saves:
+    cnn_performance.png: image
+        Training/Test Accuracy and Loss
+    results.csv: csv
+        Predictions for the test images
+    ROC.png: image
+        Receiver operating characteristic Curve
+    PR.png: image
+        Precision-Recall Curve
+    cnn_model.h5: model
+        The trained convolutional neural network
+    """
+        
     # Pointing to directory containing train and test data
     # NOTE: This needs to be modified
     train_dir = split_directory/'train'
@@ -33,7 +120,35 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
     # Model hyperparameters
     batch_size = batchsize
     epoch = epochs
-
+    
+    if start_filters > 32:
+        start_filters = 32
+        print("Too many starting filters. Restricting to 32.")
+    elif start_filters < 8:
+        start_filters = 8
+        print("Too few starting filters. Restricting to 8.")
+    
+    if depth > 3:
+        depth = 3
+        print("Model too deep for this image size. Restricting to depth of 3.")
+    elif depth < 1:
+        depth = 1
+        print("Model too shallow for this image size. Restricting to depth of 1.")
+        
+    if dense_count > 2:
+        dense_count = 2
+        print("Unorthodox dense layer. Restricting to dense layer count of 2.")
+    elif dense_count < 1:
+        dense_count = 1
+        print("Unorthodox dense layer. Restricting to dense layer count of 1.")
+        
+    if dense_neurons > 512:
+        dense_neurons = 512
+        print("Too much compute. Restricting to neuron count of 512.")
+    elif dense_neurons < 64:
+        dense_neurons = 64
+        print("Too few neurons. Restricting to neuron count of 64.")
+        
     # Train generator parameters: Allow for horizontal and vertical transformations
     train_image_generator = ImageDataGenerator(rescale=1./255, horizontal_flip=True, vertical_flip=True)
 
@@ -58,25 +173,31 @@ def run_cnn(split_directory, batchsize=256, epochs=50, color_mode='rgb'):
                                                              classes={'no_fishing': 0, 'fishing': 1}, 
                                                              shuffle=False)
 
-    # Creating basic tf.keras sequential model
-    model = Sequential([
-        Conv2D(8, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH ,IMG_DEPTH)),
-        Conv2D(8, 3, padding='same', activation='relu'),
-        MaxPooling2D(),
-        Conv2D(16, 3, padding='same', activation='relu'),
-        Conv2D(16, 3, padding='same', activation='relu'),
-        MaxPooling2D(),
-        Conv2D(32, 3, padding='same', activation='relu'),
-        Conv2D(32, 3, padding='same', activation='relu'),
-        MaxPooling2D(),
-        Flatten(),
-        Dense(256, activation='relu'),
-        Dense(256, activation='relu'),
-        Dense(1, activation='sigmoid')
-    ])
+    # Creating tf.keras functional model
+    # Input
+    image_input = Input(shape=(IMG_HEIGHT, IMG_WIDTH , IMG_DEPTH))
+    
+    # Starting Convolution Block
+    layer = Conv_block(image_input, start_filters, 2, batchnorm=bnorm)
+    
+    # Additional Convolution Blocks specified by User
+    for i in range(depth):
+        layer = Conv_block(layer, start_filters*(2*(i+1)), 2, batchnorm=bnorm)
+        
+    # Flattens 3D Tensor
+    layer = Flatten()(layer)
+    
+    # Adds Dense Blocks specified by User
+    layer = Dense_block(layer, dense_neurons,dense_count)
+    
+    # Output Layer
+    layer = Dense(1, activation='sigmoid')(layer)
+    
+    # Formalizes model
+    model = Model(inputs=image_input, outputs=layer)
 
     # Early stopping
-    earlystop = EarlyStopping(monitor='val_loss', restore_best_weights=True, patience = 4)
+    earlystop = EarlyStopping(monitor='val_loss', restore_best_weights=True, patience = 8)
 
     # Compile the model
     model.compile(optimizer='adam',

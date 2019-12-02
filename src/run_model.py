@@ -5,7 +5,7 @@ import shutil
 from utils import create_connection_from_dict, execute_sql
 from modeling.label_images import fishing_prefilter, nonfishing_dataframe_creator, sampler, trajectory_separator
 from modeling.train_test_split import split_data
-from modeling.train_cnn import run_cnn
+from modeling.train_cnn import Conv_block, Dense_block, run_cnn
 
 
 def run():
@@ -43,7 +43,7 @@ def run():
     split_data(labeled_fishing_dir, labeled_nonfishing_dir, cnn_split_dir, binary_name='fishing', set_seed=223)
     
     # Train the cnn
-    run_cnn(cnn_split_dir, batchsize=256, epochs=50, color_mode='grayscale')
+    run_cnn(cnn_split_dir, batchsize=256, epochs=50, color_mode='rgb', start_filters=8, depth=2, dense_count = 2, dense_neurons = 256, bnorm = False)
 
 if __name__ == '__main__':
     run()
